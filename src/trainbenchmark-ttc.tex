@@ -282,7 +282,7 @@ For defining the patterns and transformations, we used a graphical syntax simila
 \paragraph{Description.} All sensors that are associated with a switch that belongs to a route must also be associated directly with the same route.
 \paragraph{Query.} The query looks for sensors that are connected to a switch, but the sensor and the switch are not connected to the same route.
 \ttcpattern{pattern-routesensor}
-\paragraph{Repair transformation.} The missing \textsf{definedBy} edges is inserted by connecting the \textsf{route} in the match to the \textsf{sensor}.
+\paragraph{Repair transformation.} For a given match, the missing \textsf{definedBy} edge is inserted by connecting the \textsf{route} in the match to the \textsf{sensor}.
 \ttcpattern{transformation-routesensor}
 \paragraph{Goal.} This pattern checks for the absence of circles, so the efficiency of the join and the antijoin operations is tested.
 
@@ -290,10 +290,10 @@ For defining the patterns and transformations, we used a graphical syntax simila
 \subsection{Extension Task 2: SemaphoreNeighbor}
 \label{semaphoreneighbor}
 \paragraph{Description.} Routes that are connected through sensors and track elements must belong to the same semaphore.
-\paragraph{Query.} The query checks for routes which have an exit semaphore and a sensor connected to another sensor (which defines another route) by two track elements, but there is no other route that connects the same semaphore and the other sensor.
+\paragraph{Query.} The query checks for routes (\textsf{route1}) which have an exit semaphore (\textsf{semaphore}) and a sensor (\textsf{sensor1}) connected to a track element (\textsf{te1}). This track element is connected to another track element (\textsf{te2}) which is connected to another sensor (\textsf{sensor2}) which (partially) defines another, different route (\textsf{route2}), while the semaphore is not on the entry of this route (\textsf{route2}).
 \ttcpattern{pattern-semaphoreneighbor}
-\paragraph{Repair transformation.} For a match, the \textsf{exit} reference of \textsf{route1} is removed, resulting in a structure where the constraint must not hold true.
-\paragraph{Goal.} This pattern checks for the absence of circles, so the efficiency of the join operation is tested. One-way navigable references are also present in the constraint, so the efficient evaluation of these are also tested. Subsumption inference is required, as the two track elements can be switches or segments.
+\paragraph{Repair transformation.} For a match, the \textsf{route2} node is connected to the \textsf{semaphore} node with an \textsf{entry} edge.
+\paragraph{Goal.} This pattern checks for the absence of circles, so the efficiency of the join operation is tested. One-way navigable references are also present in the constraint, so the efficiency of their evaluation is also measured. Subsumption inference is required, as the two track elements can be switches or segments.
 \ttcpattern{transformation-semaphoreneighbor}
 
 \section{Implementation}
@@ -355,7 +355,7 @@ The expected results are available at \url{https://github.com/FTSRG/trainbenchma
 Each task and extension task is scored independently $0-3$ points by the following rules:
 \begin{itemize}
   \item $\mathbf{0}$   \textbf{points:} The task is not solved.
-  \item $\mathbf{1-2}$ \textbf{points:} The task is partially solved, the solution provides the subset or superset of the expected results.
+  \item $\mathbf{1-2}$ \textbf{points:} The task is partially solved, the solution provides the subset or the superset of the expected results.
   \item $\mathbf{3}$   \textbf{points:} The task is completely and correctly solved.
   \item $\mathbf{-1}$  \textbf{point:} Only the query is implemented, but the transformation is not.
 \end{itemize}
