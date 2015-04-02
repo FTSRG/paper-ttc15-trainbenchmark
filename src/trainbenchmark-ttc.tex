@@ -182,8 +182,8 @@ To simulate a typical validation workload, four \emph{phases} were defined (\fig
 \begin{enumerate}
 	\item During the \textsf{read} phase, the instance model is loaded from hard drive to memory. This includes the parsing of the input as well as initializing data structures (e.g.\ indexes) of the tool.
 	\item In the \textsf{check} phase, the instance model is queried to identify invalid elements. The result of this phase is a set of the invalid elements, which will be used in the next phase.
-	\item In the \textsf{repair} phase, the model is changed to simulate the effects (and measure the performance) of model modifying operations. The transformations are always performed on a subset of the model elements returned by the \textsf{check} phase. 
-	\item The revalidation of the model is carried out in the \textsf{recheck} phase similarly to the \textsf{check} phase.
+	\item In the \textsf{repair} phase, the model is changed to simulate the effects (and measure the performance) of model modifying operations. The transformations are always performed on a subset of the model elements returned by the \textsf{check} phase.
+	\item The revalidation of the model is carried out in the \textsf{recheck} phase similarly to the \textsf{check} phase. In real-world scenarios, there are often multiple transformations in the system which may interfere with the results of the query. Because of this, we require the tools to reevaluate the query with regards to the current state of the model.
 \end{enumerate}
 
 The repair operation intends to fix invalid models elements based on the invalid objects identified during the previous \textsf{check} or \textsf{recheck} phase. We defined two strategies to determine the size of the change set:
@@ -419,8 +419,6 @@ We defined two validation scenarios, based on the phases defined in~\autoref{sec
 \item[batch] The model is loaded (\textsf{read}) and validated (\textsf{check}).
 \item[repeated] The model is loaded (\textsf{read}) and validated (\textsf{check}), then the model is edited (\textsf{repair}) and revalidated (\textsf{recheck}) 10 times.
 \end{description}
-
-% Innen elég sok fontos műszaki részlet hiányzik. Hogyan mérünk, miket mérünk? Miért futtatunk 10 ciklust? Van “bemelegítés”? Hogyan dolgozzuk fel a mérési eredményeket, miket fogunk látni a chartokon? Hogyan kell a chartokat olvasni, értelmezni?
 
 The performance of the solutions are matched in 20 rankings.
 
