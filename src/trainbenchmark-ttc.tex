@@ -15,6 +15,7 @@
 \usepackage{listings}
 \usepackage{framed}
 
+\sloppy
 % custom commands
 \definecolor{negcolor}{RGB}{223,49,35}
 \definecolor{newcolor}{RGB}{43,183,47}
@@ -97,7 +98,7 @@ H-1117 Magyar tud\'{o}sok krt. 2, Budapest, Hungary}
 \begin{abstract}
 In model-driven development of safety-critical systems (like automotive, avionics or railways), well-formedness of models is repeatedly validated in order to detect design flaws as early as possible. Validation rules are often implemented by a large amount of imperative model traversal code which makes those rule implementations complicated and hard to maintain. Additionally as models are rapidly increasing in size and complexity, efficient execution of these operations is challenging for the currently available toolchains. However, checking well-formedness constraints can be interpreted as evaluation of model queries, and the operations as model transformations, where the validation task can be specified in a concise way, and executed efficiently.
 
-This paper presents a benchmark case and an evaluation framework to systematically assess the scalability of validating and revalidating well-formedness constraints over large models. The benchmark case defines a typical well-formedness validation scenario in the railway domain including the metamodel, an instance model generator, and a set of well-formedness constraints captured by queries and repair operations (imitating the work of systems engineers by model transformations). The benchmark case focuses on the execution time of the query evaluations (and reevaluations) as well as simple repair transformations.
+This paper presents a benchmark case and an evaluation framework to systematically assess the scalability of validating and revalidating well-formedness constraints over large models. The benchmark case defines a typical well-formedness validation scenario in the railway domain including the metamodel, an instance model generator, and a set of well-formedness constraints captured by queries and repair operations (imitating the work of systems engineers by model transformations). The benchmark case focuses on the execution time of the query evaluations with a special emphasis on reevaluations, as well as simple repair transformations.
 \end{abstract}
 
 \section{Introduction}
@@ -106,9 +107,9 @@ During the development of safety critical software like automotive, avionics or 
 
 Model validation problems are often addressed by model transformation engines: error cases are defined by model queries, the results of which can be automatically repaired by transformation steps. In practice, this is challenging due to two factors: (i) \emph{instance model sizes} are exhibiting a tremendous growth as the complexity of systems-under-design is increasing, (ii) the \emph{sophistication of validation constraints} in toolchains is increasing. As a consequence, validation of industrial models is challenging or may become completely unfeasible.
 
-To address this challenge, the \tb is a macro benchmark that aims to measure repetitive query evaluation performance. While there are a number of existing benchmarks for queries over relational databases or graph stores, modeling tool workloads for well-formedness constraint validation are significantly different. Specifically, modeling tools use much more complex queries than typical transactional systems, and the real world performance is more affected by response time (i.e.\ execution time for a specific operation such as validation or transformation) rather than throughput (i.e.\ the number of parallel transactions). The benchmark defines a scenario that is specifically modeled after \emph{model validation} in (domain-specific) modeling tools: at first, the entire model is validated, then each model transformation is followed by an immediate revalidation. The primary goal of the benchmark is to measure the execution time of each phase.
+To address this challenge, the \tb is a macro benchmark that aims to measure repetitive query evaluation performance. While there are a number of existing benchmarks for queries over relational databases~\cite{TPC-C, Wisconsin} and triplestores~\cite{BSBM, SP2Bench, DBpedia, LUBM}, modeling tool workloads for well-formedness constraint validation are significantly different~\cite{ase2013}. Specifically, modeling tools use much more complex queries than typical transactional systems, and the real world performance is more affected by response time (i.e.\ execution time for a specific operation such as validation or transformation) rather than throughput (i.e.\ the number of parallel transactions). Also, previous TTC cases did not focus on measuring the performance of query reevaluation.
 
-The benchmark uses a domain-specific model of a railway system that originates from the \mbox{MOGENTES} EU FP7~\cite{MOGENTES} project, where both the metamodel and the well-formedness rules were defined by railway domain experts. Some of the queries are in close correspondence with constraints in the AUTOSAR standard~\cite{AUTOSAR}. This case is based on the \tb~\cite{TrainBenchmarkTechReport}, a benchmark framework previously used in various papers~\cite{bigmde2013, ase2013, bigmde2014, models2014, scp2015}.
+The \tb defines a scenario that is specifically modeled after \emph{model validation} in (domain-specific) modeling tools: at first, the entire model is validated, then each model transformation is followed by an immediate revalidation. The primary goal of the benchmark is to measure the execution time of each phase. The benchmark uses a domain-specific model of a railway system that originates from the \mbox{MOGENTES} EU FP7~\cite{MOGENTES} project, where both the metamodel and the well-formedness rules were defined by railway domain experts. Some of the queries are in close correspondence with constraints in the AUTOSAR standard~\cite{AUTOSAR}. This case is based on the \tb~\cite{TrainBenchmarkTechReport}, a benchmark framework previously used in various papers~\cite{bigmde2013, ase2013, bigmde2014, models2014, scp2015}.
 
 \section{Case Description}
 
@@ -155,6 +156,8 @@ The instance models are systematically generated for the metamodel: small model 
 
 This generation method controls the number of matches of all defined model queries. To avoid highly symmetric models, the exact number of elements and cardinalities are randomized. This brings artificially generated models closer to real world instances and prevents query tools from abusing the artificial regularity of the model. 
 
+To assess scalability, the benchmark uses instance models of growing sizes, each model containing twice as many model elements as the previous one. The instance models are designated by powers of two (1, 2, 4, 8, \ldots), the smallest model containing about 5000 model elements. 
+
 \subsubsection{EMF Models}
 \label{emf-models}
 
@@ -200,8 +203,14 @@ The \emph{queries} used in the validation scenario are introduced both informall
 The purpose of the queries is to check well-formedness constraints by matching graph patterns looking for errors in the model. The \emph{graph patterns} are defined by a \emph{name}, a list of symbolic object parameters and the constraints to be satisfied by the parameters. A \emph{pattern match} maps each symbolic parameter to a model object, where the mapping satisfies the conditions defined by the constraints. The result of the query is the set of all possible matches. The absence of pattern matches means that the model is well-formed, and the matches of the error pattern marks the invalid elements. The \emph{match set} contains all matches for a given pattern.
 
 \subsubsection{Ordering of the Match Set}
+\label{ordering}
 
-The matches in the match set may be returned in any collection (e.g.\ a list or a set) in any order, given that the collection is unique. In order to ensure \emph{comparable results}, this collection is copied to a list. The list is sorted using a total ordering between the unique id of the railway elements. For example, for the \textsf{SwitchSet} query (\autoref{switchset}), a match set may be returned by tool $A$ as list
+The matches in the match set may be returned in any collection (e.g.\ a list or a set) in any order, given that the collection is unique. In order to ensure that the benchmark is \emph{repeatable}, this collection is copied to a sorted list. The sorting is carried out using by defining the ordering between matches.
+
+To \emph{compare} matches $M_1 = \langle a_1, a_2, \ldots, a_n \rangle$ and $M_2 = \langle b_1, b_2, \ldots b_n \rangle$, we take the first elements in each match ($a_1$ and $b_1$) and compare their identifiers. If the first elements are equal, we compare the second elements ($a_2$ and $b_2$) and so on until we find two different model elements. This is guaranteed by the fact that the collection is unique, so it cannot contain two identical matches.
+
+  
+For example, for the \textsf{SwitchSet} query (\autoref{switchset}), a match set may be returned by tool $A$ as list
 
 $$\left(
 \langle\textsf{route}: 8, \textsf{sensor}: 12, \textsf{switchPosition}: 4, \textsf{sw}: 10\rangle;
@@ -215,7 +224,7 @@ $$\left\{
 \langle\textsf{route}: 8, \textsf{sensor}: 12, \textsf{switchPosition}: 4, \textsf{sw}: 10\rangle
 \right\}$$
 
-For both implementations, the results are copied to a list and sorted, resulting in the list
+For both implementations, the framework creates a \emph{sorted copy}, resulting in the list
 
 $$\left(
 \langle\textsf{route}: 5, \textsf{sensor}: 1, \textsf{switchPosition}: 13, \textsf{sw}: 7\rangle;
@@ -237,7 +246,7 @@ In the \emph{repair} phase, some model elements are \emph{deterministically sele
 \section{Tasks}
 \label{tasks}
 
-For each task, we present the well-formedness constraints. The \emph{queries} are looking for violations of these constraints. We describe the meaning and the goal of each query and show a graphical notation of the associated graph pattern. The \emph{repair transformations} are represented as graph transformations.
+For each task, we present the well-formedness constraints. The \emph{queries} are looking for violations of these constraints. We describe the meaning and the goal of each query and show a graphical notation of the associated graph pattern. We also define the matches as tuples to ensure that the ordering of the matches is consistent between the implementations (\autoref{ordering}). The \emph{repair transformations} are represented as graph transformations.
 
 For defining the patterns and transformations, we used a graphical syntax similar to GROOVE~\cite{rensink2004groove} with a couple of additions:
 
@@ -250,8 +259,9 @@ For defining the patterns and transformations, we used a graphical syntax simila
 \subsection{Task 1: PosLength}
 \label{poslength}
 \paragraph{Description.} Every segment must have a positive length.
-\paragraph{Query.} Therefore, the query checks for segments with a length less than or equal to zero.
+\paragraph{Query.} The query checks for segments with a length less than or equal to zero.
 \ttcpattern{pattern-poslength}
+\paragraph{Match.} $$\langle \mathsf{segment} \rangle$$ 
 \paragraph{Repair transformation.} The \textsf{length} attribute of the \textsf{segment} in the match is updated to $- \mathsf{length} + 1$.
 \ttcpattern{transformation-poslength}
 \paragraph{Goal.} This query defines an attribute check. This is a common use case in validation scenarios.
@@ -262,16 +272,17 @@ For defining the patterns and transformations, we used a graphical syntax simila
 \paragraph{Description.} Every switch must have at least one sensor connected to it. 
 \paragraph{Query.} The query checks for switches that have no sensors associated with them.
 \ttcpattern{pattern-switchsensor}
+\paragraph{Match.} $$\langle \mathsf{sw} \rangle$$
 \paragraph{Repair transformation.} For a given match, a \textsf{sensor} is created and connected to the \textsf{switch}.
 \ttcpattern{transformation-switchsensor}
 \paragraph{Goal.} This query checks whether an object is connected to a relation. This pattern is common in more complex queries, e.g.\ it is used in the \textsf{RouteSensor} and the \textsf{SemaphoreNeighbor} queries.
-
 
 \subsection{Task 3: SwitchSet}
 \label{switchset}
 \paragraph{Description.} The entry semaphore of a route may only show GO if all switches along the route are in the position prescribed by the route.
 \paragraph{Query.} The query checks for routes which have a semaphore that show the GO signal. Additionally, the route follows a switch position (\textsf{swP}) that is connected to a switch (\textsf{sw}), but the switch position (\textsf{swP.position}) defines a different position from the current position of the switch (\textsf{sw.currentPosition}). 
 \ttcpattern{pattern-switchset}
+\paragraph{Match.} $$\langle \mathsf{semaphore}, \mathsf{route}, \mathsf{swP}, \mathsf{sw} \rangle$$
 \paragraph{Repair transformation.} For a given match, the \textsf{currentPosition} attribute of the \textsf{switch} is set to the \textsf{position} of the \textsf{switchPsosition}. 
 \ttcpattern{transformation-switchset}
 \paragraph{Goal.} This pattern tests the efficiency of the join and filtering operations.
@@ -282,6 +293,7 @@ For defining the patterns and transformations, we used a graphical syntax simila
 \paragraph{Description.} All sensors that are associated with a switch that belongs to a route must also be associated directly with the same route.
 \paragraph{Query.} The query looks for sensors that are connected to a switch, but the sensor and the switch are not connected to the same route.
 \ttcpattern{pattern-routesensor}
+\paragraph{Match.} $$\langle \mathsf{route}, \mathsf{sensor}, \mathsf{swP}, \mathsf{sw} \rangle$$
 \paragraph{Repair transformation.} For a given match, the missing \textsf{definedBy} edge is inserted by connecting the \textsf{route} in the match to the \textsf{sensor}.
 \ttcpattern{transformation-routesensor}
 \paragraph{Goal.} This pattern checks for the absence of circles, so the efficiency of the join and the antijoin operations is tested.
@@ -292,6 +304,7 @@ For defining the patterns and transformations, we used a graphical syntax simila
 \paragraph{Description.} Routes that are connected through sensors and track elements must belong to the same semaphore.
 \paragraph{Query.} The query checks for routes (\textsf{route1}) which have an exit semaphore (\textsf{semaphore}) and a sensor (\textsf{sensor1}) connected to a track element (\textsf{te1}). This track element is connected to another track element (\textsf{te2}) which is connected to another sensor (\textsf{sensor2}) which (partially) defines another, different route (\textsf{route2}), while the semaphore is not on the entry of this route (\textsf{route2}).
 \ttcpattern{pattern-semaphoreneighbor}
+\paragraph{Match.} $$\langle \mathsf{semaphore}, \mathsf{route1}, \mathsf{route2}, \mathsf{sensor1}, \mathsf{sensor2}, \mathsf{te1}, \mathsf{te2} \rangle$$
 \paragraph{Repair transformation.} For a match, the \textsf{route2} node is connected to the \textsf{semaphore} node with an \textsf{entry} edge.
 \paragraph{Goal.} This pattern checks for the absence of circles, so the efficiency of the join operation is tested. One-way navigable references are also present in the constraint, so the efficiency of their evaluation is also measured. Subsumption inference is required, as the two track elements can be switches or segments.
 \ttcpattern{transformation-semaphoreneighbor}
@@ -431,6 +444,8 @@ This way, a tool gets up to 20 points for performance:
 \subsection{Overall Evaluation}
 
 The scores of each aspect of the submitted solution are summarized to derive the final score (max. 65 points) used for ranking the submitted solutions.
+
+\paragraph{Acknowledgements.} The authors would like to thank Benedek Izsó for originally designing and implementing the \tb, Tassilo Horn for providing  valuable comments regarding both the specification of the case and the implementation of the benchmark framework, and Zsolt Kővári for his contributions in the benchmark and visualization scripts.
 
 \bibliographystyle{eptcs}
 \bibliography{ttc}
