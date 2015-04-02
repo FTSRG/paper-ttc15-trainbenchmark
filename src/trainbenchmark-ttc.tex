@@ -14,6 +14,7 @@
 \usepackage{xcolor}
 \usepackage{listings}
 \usepackage{framed}
+\usepackage{xfrac}
 
 \sloppy
 % custom commands
@@ -211,27 +212,21 @@ To \emph{compare} matches $M_1 = \langle a_1, a_2, \ldots, a_n \rangle$ and $M_2
 
   
 For example, for the \textsf{SwitchSet} query (\autoref{switchset}), a match set may be returned by tool $A$ as list
-
-$$\left(
+\[\left(
 \langle\textsf{route}: 8, \textsf{sensor}: 12, \textsf{switchPosition}: 4, \textsf{sw}: 10\rangle;
 \langle\textsf{route}: 5, \textsf{sensor}: 1, \textsf{switchPosition}: 13, \textsf{sw}: 7\rangle
-\right)$$
-
+\right)\]
 and by tool $B$ as set
-
-$$\left\{
+\[\left\{
 \langle\textsf{route}: 5, \textsf{sensor}: 1, \textsf{switchPosition}: 13, \textsf{sw}: 7\rangle;
 \langle\textsf{route}: 8, \textsf{sensor}: 12, \textsf{switchPosition}: 4, \textsf{sw}: 10\rangle
-\right\}$$
-
+\right\}\]
 For both implementations, the framework creates a \emph{sorted copy}, resulting in the list
-
-$$\left(
+\[\left(
 \langle\textsf{route}: 5, \textsf{sensor}: 1, \textsf{switchPosition}: 13, \textsf{sw}: 7\rangle;
 \langle\textsf{route}: 8, \textsf{sensor}: 12, \textsf{switchPosition}: 4, \textsf{sw}: 10\rangle
-\right)$$
-
-The orderd list is also used to ensure that the transformations (\autoref{transformations}) are performed on the same model elements, regardless of the return order of the match set.
+\right)\]
+The ordered list is also used to ensure that the transformations (\autoref{transformations}) are performed on the same model elements, regardless of the return order of the match set.
 
 \subsection{Transformations}
 \label{transformations}
@@ -253,7 +248,7 @@ For defining the patterns and transformations, we used a graphical syntax simila
 \begin{itemize}
   \item Filter conditions are shown in \textit{italic} font.
   \item Negative application conditions are shown with in a \textcolor{negcolor}{red} rectangle with the \textcolor{negcolor}{\textsf{NEG}} caption.
-  \item The insertions are with a \textcolor{newcolor}{\guillemotleft{}new\guillemotright{}} caption, while deletions are marked with a \textcolor{delcolor}{\guillemotleft{}del\guillemotright{}} caption. Attribute updates are also show in \textcolor{newcolor}{green}.
+  \item The insertions are with a \textcolor{newcolor}{\guillemotleft{}new\guillemotright{}} caption. Attribute updates are also show in \textcolor{newcolor}{green}. % while deletions are marked with a \textcolor{delcolor}{\guillemotleft{}del\guillemotright{}} caption
 \end{itemize}
 
 \subsection{Task 1: PosLength}
@@ -428,11 +423,16 @@ The performance of the solutions are matched in 20 rankings.
   \item Each solution is measured for both \emph{fixed} and \emph{proportional} change sets.
 \end{itemize}
 
-A solution gets from 0 to 1 points for a ranking which is launched for increasing model size. The score is based on the maximum size that the solution is able to handle, and the runtime of the fastest solution. Each measurement is executed 5 times and the median value is taken.
+A solution gets from 0 to 1 points for a ranking which is launched for increasing model size. The score is based on the maximum size that the solution is able to handle, and the runtime relative to the fastest solution. Each measurement is executed 5 times and the median value is taken.
 \begin{itemize}
-  \item The model size is increased while there is a tool that is able to solve it in the given time limit. This results $n$ different sizes.
-  \item For each size, if a tool is able to complete the validation, it is rewarded points according to the following formula:
-  \[ \frac{1}{n} \times \frac{\text{fastest time}}{\text{ solution time}} \]
+  \item The model size is increased while there is a tool that is able to solve it in the given time limit. This results in $\mathit{max}$ different sizes.
+  \item For each size $\mathit{s}$ from 1 up to $\mathit{max}$, if a tool is able to complete the validation, it is rewarded points proportional to the size of the target model, i.e.\ the winner in the first round for $\mathit{s}=1$ earns 1 point, the winner in the second run for $s=2$ earns 2 points, and so on. The sum of points which can be earned in the ranking is normalized to 1, therefore the score for a size $s$ is:
+  \[ \mathit{score}_\mathit{size}(s)= \frac{s}{\mathit{max}\cdot(\mathit{max}+1)/2} \]
+  \item The fastest solution in each round earns 1 point, the other solutions earn partial points, based on the proportion of the actual solution runtime to the fastest runtime. The logarithm of this ratio for base 2 defines the score. For example, if a solution takes twice as long time, it earns \sfrac{1}{2} points, if it takes four times as long, it earns \sfrac{1}{3}, if it takes eight times as long, it earns \sfrac{1}{4}, and so on. The formula is specified as:
+    \[ %\sum^{\mathit{max}}_{\mathit{size}}
+  \mathit{score}_\mathit{time}(s)=\frac{1}{1+\log_2\left(\frac{\text{runtime in round $s$}}{\text{fastest time in the round $s$}}\right)} \]
+  \item A solution earns a score between 0 and 1 in a ranking calculated in the following way:
+\[\sum^{\mathit{max}}_{s=1} \ \mathit{score}_\mathit{size}(s) \times \mathit{score}_\mathit{time}(s) \]
 \end{itemize}
 
 This way, a tool gets up to 20 points for performance:
