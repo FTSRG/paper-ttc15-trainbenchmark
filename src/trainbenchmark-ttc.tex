@@ -378,20 +378,22 @@ The validation rules are frequently changed and extended, therefore it is import
   \item $\mathbf{-1}$  \textbf{point:} Only the query or only the transformation is implemented.
 \end{itemize}
 
+\noindent\framebox[\textwidth][c]{(3 Tasks + 2 Extension Tasks) $\times$ 3 points = 15 points for conciseness}
+
+\subsection{Readability}
+
 Second, the readability and descriptiveness of each transformation is scored with respect of the model validation scenario. The score represents how well model queries are used as model constraints, and repair operations represented by model transformations. The score is given based on the following rules:
 \begin{itemize}
   \item $\mathbf{0}$   \textbf{points:} The task is not solved.
   \item $\mathbf{1}$   \textbf{point:} The task is solved, but it does not provide a significantly better solution than imperative code, or the task is just partially solved. For example, a typical EMF validator should get 1 point.
   \item $\mathbf{2}$   \textbf{points:} The task is solved, the query and the transformation follows the description of the constraint and repair rule, but it's difficult to comprehend the meaning of the solution. For example, a foreign key constraint checked by a query formulated in SQL should get 2 points.
-  \item $\mathbf{3}$   \textbf{points:} The solution could be presented in the documentation of the modeling language, and it would easier to comprehend than a purely textual description. For example, a solution with interface similar to the graphical notation used in this paper should get 3 points.
+  \item $\mathbf{3}$   \textbf{points:} The solution could be presented in the documentation of the modeling language, and it would easier to comprehend than a description in natural language. For example, a solution with interface similar to the graphical notation used in this paper should get 3 points.
   \item $\mathbf{-1}$  \textbf{point:} If only the constraint or the repair operation can be used as constraint or repair rule.
 \end{itemize}
 
 This way, a solution gets up to 15 points for conciseness, and 15 points for usability in validation.
 
-\noindent\framebox[\textwidth][c]{(3 Tasks + 2 Extension Tasks) $\times$ 3 points = 15 points for conciseness}
-
-\noindent\framebox[\textwidth][c]{(3 Tasks + 2 Extension Tasks) $\times$ 3 points = 15 points for validation}
+\noindent\framebox[\textwidth][c]{(3 Tasks + 2 Extension Tasks) $\times$ 3 points = 15 points for readbility}
 
 \subsection{Performance on Large Models}
 The goal of the performance measurements is to check the applicability of the submitted solutions on large industrial models. During the performance tests the execution times will be measured for different for different scenarios and increasing model size.
