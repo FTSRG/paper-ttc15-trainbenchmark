@@ -398,7 +398,7 @@ The readability and descriptiveness of each query and transformation is scored w
 \noindent\framebox[\textwidth][c]{\textbf{Readability:} (3 Tasks + 2 Extension Tasks) $\times$ 3 points = 15 points}
 
 \subsection{Performance on Large Models}
-The goal of the performance measurements is to check the applicability of the submitted solutions on large industrial models. During the performance tests the execution times will be measured for different scenarios and increasing model size.
+The goal of the performance measurements is to check the applicability of the submitted solutions on large industrial models. During the performance tests the execution times will be measured for different scenarios and increasing model sizes.
 
 As for last year's Movie Database case~\cite{horn2014ttc}, please restrict your benchmarks to those input models that can be processed within 5 minutes or less. Runs that take longer than 5 minutes will not be considered in the evaluation. Please provide a solution that can run on an x64-based Linux system with 4+~GB of memory, and that can be started on the command-line. This will be important to reproduce your results on a remote testing system. Please document the setup of your solution and the requirements to the system environment.
 
@@ -409,60 +409,60 @@ We defined two validation scenarios, based on the phases defined in~\autoref{sec
 \item[repeated] The model is loaded (\textsf{read}) and validated (\textsf{check}), then the model is edited (\textsf{repair}) and revalidated (\textsf{recheck}) 10 times.
 \end{description}
 
-The performance of the solutions are matched in 20 \emph{rankings}.
+The performance of the solutions are compared in 20 \emph{tournaments}:
 
 \begin{itemize}
-  \item The rankings are calculated for the 3 \emph{tasks} and 2 \emph{extension tasks}. If a solution skips a task, it is not considered in the ranking.
+  \item The tournaments are calculated for the 3 \emph{tasks} and 2 \emph{extension tasks}. If a solution skips a task, it is not considered in the tournaments.
   \item Each solution is measured for both \emph{batch} and \emph{repeated} validation.
   \item Each solution is measured for both \emph{fixed} and \emph{proportional} change sets.
 \end{itemize}
 
-A solution gets from 0 to 1 points for a ranking which is launched for increasing model sizes. The score is based on the maximum size that the solution is able to handle, and the execution time relative to the fastest solution. Each measurement is executed 5 times and the median value is taken.
+A solution gets from 0 to 1 points for a tournaments which is launched for increasing model sizes. The score is based on the maximum size that the solution is able to handle, and its execution time relative to the fastest solution. Each measurement is executed 5 times and the median value is taken.
 
 \begin{itemize}
-  \item The model size is increased as long as there is a tool that is able to solve it in the given time limit. This results in $n$ rounds for sizes $1, 2, 4, \ldots, 2^{(n-1)}$.  
-  \item For each ranking, a solution earns a score between 0 and 1, determined by the following formula:
-\[\sum^{\mathit{n}}_{s=1} \mathit{score}(s), \]
+  \item The model size is increased as long as there is a tool that is able to solve it in the given time limit. This results in rounds $k = 1, 2, 3, \ldots, n$ for sizes $2^{k-1}$ ($1, 2, 4, \ldots, 2^{n-1}$).  
+  \item For each tournament, a solution earns a score between 0 and 1, determined by the following formula:
+\[\sum^{\mathit{n}}_{k=1} \mathit{score}(k), \]
 
 where
  
 \[
-\mathit{score}(s) =
+\mathit{score}(k) =
 \begin{cases}
-    \mathit{score}_\mathit{size}(s) \times \mathit{score}_\mathit{time}(s), & \text{if the solution runs correctly and within the given time limit,}\\
-    0,                                                                      & \text{if the solution fails to run correctly or within the given time limit.}
+    \mathit{score}_\mathit{size}(k) \times \mathit{score}_\mathit{time}(k), & \text{if the solution runs correctly and within the given time limit,}\\
+    0,                                                                      & \text{if the solution fails to run correctly or exceeds the given time limit.}
 \end{cases}
 \]
-  \item For each size $\mathit{s}$ from 1 up to $2^{(n-1)}$, if a tool is able to complete the validation, it is rewarded points proportional to $\log_2 s + 1$:
+  \item For each round $\mathit{k}$ from 1 to n, if a tool is able to complete the validation, it is rewarded $k$ points:
   	\begin{itemize}
-  	  \item round 1: the winner for $s = 1$ earns 1 point,
-  	  \item round 2: the winner for $s = 2$ earns 2 points,
-  	  \item round 3: the winner for $s = 4$ earns 3 points,
+  	  \item round 1 (size 1): the winner earns 1 point,
+  	  \item round 2 (size 2): the winner earns 2 points,
+  	  \item round 3 (size 4): the winner earns 3 points,
   	  \item \ldots
-  	  \item round $n$: the winner for $s = 2^{(n-1)}$ earns $n$ points.
+  	  \item round $n$ (size $2^{n-1}$): the winner earns $n$ points.
   	\end{itemize}
-  In total, a solution earns up to $1 + 2 + 3 + \ldots + n = \mathit{n}\cdot(\mathit{n}+1)/2$ points in a ranking. This results is normalized to 1, therefore the score for a size $s$ is:
-  \[ \mathit{score}_\mathit{size}(s)= \frac{\log_2 s + 1}{\mathit{n}\cdot(\mathit{n}+1)/2} \]
-  \item The fastest solution in each round earns 1 point, the other solutions earn partial points, based on the proportion of the actual solution execution to the fastest execution time. The logarithm of this ratio for base 2 defines the score. For example:
+  In total, a solution earns up to $1 + 2 + 3 + \ldots + n = \mathit{n}\cdot(\mathit{n}+1)/2$ points in a tournament. This result is normalized to 1, therefore the score for round $k$ is:
+  \[ \mathit{score}_\mathit{size}(k)= \frac{k}{\mathit{n}\cdot(\mathit{n}+1)/2} \]
+  \item The fastest solution in each round earns 1 point, the other solutions earn partial points, based on the proportion of the current solution's execution time to the fastest execution time. The logarithm of this ratio for base 2 defines the score. For example:
   	\begin{itemize}
-  	  \item if a solution takes twice as long, it earns \sfrac{1}{2} points, 
-  	  \item if it takes four times as long, it earns \sfrac{1}{3} points,
-  	  \item if it takes eight times as long, it earns \sfrac{1}{4} points,
+  	  \item if a solution takes $2 \times$ as long, it earns \sfrac{1}{2} points, 
+  	  \item if a solution takes $4 \times$ as long, it earns \sfrac{1}{3} points,
+  	  \item if a solution takes $8 \times$ as long, it earns \sfrac{1}{4} points,
   	  \item and so on.
   	\end{itemize}
   	
   	The formula is specified as:
   
-    \[ \mathit{score}_\mathit{time}(s)=\frac{1}{1+\log_2\left(\frac{\text{execution time in round $s$}}{\text{fastest execution time in the round $s$}}\right)} \]
+    \[ \mathit{score}_\mathit{time}(k)=\frac{1}{1+\log_2\left(\frac{\text{the solution's execution time in round $k$}}{\text{the fastest execution time in the round $k$}}\right)} \]
 \end{itemize}
 
-\textbf{Performance:}
+In conclusion, a solution earns up to 20 points for \textbf{performance}:
 
-\noindent\framebox[\textwidth][c]{(3 Tasks + 2 Extension Tasks) $\times$ 2 validation scenario $\times$ 2 change set sizes $\times$ up to 1 point = 20 points}
+\noindent\framebox[\textwidth][c]{(3 Tasks + 2 Extension Tasks) $\times$ 2 validation scenario $\times$ 2 change set sizes $\times$ up to 1 points = 20 points}
 
 \subsection{Overall Evaluation}
 
-The scores of each aspect of the submitted solution are summarized to derive the final score (max. 65 points) used for ranking the submitted solutions.
+The scores of each aspect of the submitted solution are summarized to derive the final score (max.\ 65 points) used for ranking the submitted solutions.
 
 \paragraph{Acknowledgements.} The authors would like to thank Benedek Izsó for originally designing and implementing the \tb, Tassilo Horn for providing  valuable comments regarding both the specification of the case and the implementation of the benchmark framework, and Zsolt Kővári for his contributions in the benchmark and visualization scripts.
 
