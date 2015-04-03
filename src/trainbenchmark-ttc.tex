@@ -376,7 +376,7 @@ The validation rules are frequently changed and extended, therefore it is import
 
 \begin{itemize}
   \item $\mathbf{0}$   \textbf{points:} The task is not solved.
-  \item $\mathbf{1}$   \textbf{point:} The task is solved, but it does not provide a significantly better solution than imperative code, or the task is partially solved and the result set needs additional processing.
+  \item $\mathbf{1}$   \textbf{point:} The task is solved, but the solution is not significantly more concise than it would be in a general-purpose imperative language (e.g.\ Java), or the task is partially solved and the result set needs additional processing.
   \item $\mathbf{2}$   \textbf{points:} The task is solved, the query and the transformation is defined in a declarative, visual or other query language, but the specification is hard to formulate.
   \item $\mathbf{3}$   \textbf{points:} The solution is compact, the query and the transformation are defined in a concise manner.
   \item $\mathbf{-1}$  \textbf{point:} Either the query or the transformation is implemented.
@@ -389,7 +389,7 @@ The validation rules are frequently changed and extended, therefore it is import
 The readability and descriptiveness of each query and transformation is scored with respect to a model validation use case. The score represents how well model queries are used as model constraints, and how well repair operations can be expressed by model transformations. The score is given based on the following rules:
 \begin{itemize}
   \item $\mathbf{0}$   \textbf{points:} The task is not solved.
-  \item $\mathbf{1}$   \textbf{point:} The task is solved, but it does not provide a significantly better solution than imperative code, or the task is just partially solved. For example, a typical EMF validator should get 1 point.
+  \item $\mathbf{1}$   \textbf{point:} The task is solved, but the solution is not significantly more readable than it would be in a general-purpose imperative language (e.g.\ Java), or the task is just partially solved. For example, a typical EMF validator should get 1 point.
   \item $\mathbf{2}$   \textbf{points:} The task is solved, the query and the transformation follows the description of the constraint and repair rule, but it is difficult to comprehend the meaning of the solution. For example, a foreign key constraint checked by a query formulated in SQL should get 2 points.
   \item $\mathbf{3}$   \textbf{points:} The solution could be presented in the documentation of the modeling domain, and it is easier to comprehend than a textual description in natural language. For example, a solution similar to the graphical notation used in this paper should get 3 points.
   \item $\mathbf{-1}$  \textbf{point:} If the language is only able to express either the constraint (e.g.\ OCL) or the repair operation.
@@ -421,12 +421,12 @@ A solution gets from 0 to 1 points for a ranking which is launched for increasin
 \begin{itemize}
   \item The model size is increased while there is a tool that is able to solve it in the given time limit. This results in $\mathit{max}$ different sizes.
   \item For each size $\mathit{s}$ from 1 up to $\mathit{max}$, if a tool is able to complete the validation, it is rewarded points proportional to the size of the target model, i.e.\
-  	\begin{description}
-  	  \item[round 1:] the winner for $s=1$ earns 1 point,
-  	  \item[round 2:] the winner for $s=2$ earns 2 points,
-  	  \item[round 3:] the winner for $s=3$ earns 3 points,
+  	\begin{itemize}
+  	  \item round 1: the winner for $s=1$ earns 1 point,
+  	  \item round 2: the winner for $s=2$ earns 2 points,
+  	  \item round 3: the winner for $s=3$ earns 3 points,
   	  \item and so on.
-  	\end{description}
+  	\end{itemize}
   In total, a solution earns up to $1 + 2 + 3 + \ldots + max = \mathit{max}\cdot(\mathit{max}+1)/2$ points in a ranking. This results is normalized to 1, therefore the score for a size $s$ is:
   \[ \mathit{score}_\mathit{size}(s)= \frac{s}{\mathit{max}\cdot(\mathit{max}+1)/2} \]
   \item The fastest solution in each round earns 1 point, the other solutions earn partial points, based on the proportion of the actual solution execution to the fastest execution time. The logarithm of this ratio for base 2 defines the score. For example:
