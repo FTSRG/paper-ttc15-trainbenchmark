@@ -278,7 +278,7 @@ For defining the patterns and transformations, we used a graphical syntax simila
 \paragraph{Query.} The query checks for routes which have a semaphore that show the GO signal. Additionally, the route follows a switch position (\textsf{swP}) that is connected to a switch (\textsf{sw}), but the switch position (\textsf{swP.position}) defines a different position from the current position of the switch (\textsf{sw.currentPosition}). 
 \ttcpattern{pattern-switchset}
 \paragraph{Match.} $$\langle \mathsf{semaphore}, \mathsf{route}, \mathsf{swP}, \mathsf{sw} \rangle$$
-\paragraph{Repair transformation.} For a given match, the \textsf{currentPosition} attribute of the \textsf{switch} is set to the \textsf{position} of the \textsf{switchPsosition}. 
+\paragraph{Repair transformation.} For a given match, the \textsf{currentPosition} attribute of the \textsf{switch} is set to the \textsf{position} of the \textsf{switchPosition}. 
 \ttcpattern{transformation-switchset}
 \paragraph{Goal.} This pattern tests the efficiency of the join and filtering operations.
 
