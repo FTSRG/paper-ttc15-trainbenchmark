@@ -211,7 +211,7 @@ The matches in the match set may be returned in any collection (e.g.\ a list or 
 To \emph{compare} matches $M_1 = \langle a_1, a_2, \ldots, a_n \rangle$ and $M_2 = \langle b_1, b_2, \ldots b_n \rangle$, we take the first elements in each match ($a_1$ and $b_1$) and compare their identifiers. If the first elements are equal, we compare the second elements ($a_2$ and $b_2$) and so on until we find two different model elements. This is guaranteed by the fact that the collection is unique, so it cannot contain two identical matches.
 
   
-For example, for the \textsf{SwitchSet} query (\autoref{switchset}), a match set may be returned by tool $A$ as list
+For example, for the \textsf{RouteSensor} query (\autoref{routesensor}), a match set may be returned by tool $A$ as list
 \[\left(
 \langle\textsf{route}: 8, \textsf{sensor}: 12, \textsf{switchPosition}: 4, \textsf{sw}: 10\rangle;
 \langle\textsf{route}: 5, \textsf{sensor}: 1, \textsf{switchPosition}: 13, \textsf{sw}: 7\rangle
