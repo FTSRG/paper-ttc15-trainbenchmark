@@ -422,7 +422,7 @@ A solution gets from 0 to 1 points for a tournament which is launched for increa
 \begin{itemize}
   \item The model size is increased as long as there is a solution that is able to solve it in the given time limit. This results in \emph{rounds} $k = 1, 2, 3, \ldots, n$ for sizes $2^{k-1}$ ($1, 2, 4, \ldots, 2^{n-1}$).  
   \item For each tournament, a solution earns a score between 0 and 1, determined by
-\[\sum^{\mathit{n}}_{k=1} \mathit{score}(k), \]
+\[\frac{\sum^{\mathit{n}}_{k=1} \mathit{score}(k)}{\mathit{n}\cdot(\mathit{n}+1)/2}, \]
 
 where
  
@@ -433,6 +433,9 @@ where
     0,                                                                      & \text{if the solution fails to run correctly or exceeds the given time limit.}
 \end{cases}
 \]
+
+and $\mathit{n}\cdot(\mathit{n}+1)/2 = 1 + 2 + 3 + \ldots + n$ is used for normalizing the result.
+
   \item For each round $\mathit{k}$ from 1 to $n$, if a solution is able to complete the validation, it is rewarded $k$ points:
   	\begin{itemize}
   	  \item round 1 (size 1): the winner earns 1 point,
@@ -441,8 +444,11 @@ where
   	  \item \ldots
   	  \item round $n$ (size $2^{n-1}$): the winner earns $n$ points.
   	\end{itemize}
-  In total, a solution earns up to $1 + 2 + 3 + \ldots + n = \mathit{n}\cdot(\mathit{n}+1)/2$ points in a tournament. This result is normalized to 1, therefore the score for round $k$ is:
-  \[ \mathit{score}_\mathit{size}(k)= \frac{k}{\mathit{n}\cdot(\mathit{n}+1)/2} \]
+  	
+  	The formula is specified as:
+  	
+    \[ \mathit{score}_\mathit{size}(k)= k \]
+  	
   \item The fastest solution in each round earns 1 point, the other solutions earn partial points, based on the proportion of the current solution's execution time to the fastest execution time. The logarithm of this ratio for base 2 defines the score. For example:
   	\begin{itemize}
   	  \item if a solution takes $2 \times$ as long, it earns \sfrac{1}{2} points, 
