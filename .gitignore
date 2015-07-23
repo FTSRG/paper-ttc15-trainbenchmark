@@ -113,4 +113,5 @@ sympy-plots-for-*.tex/
 /tmp
 
 *.~*
+~$*.*
 trainbenchmark-ttc.pdf

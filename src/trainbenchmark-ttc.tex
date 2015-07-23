@@ -413,7 +413,6 @@ The performance of the solutions are compared in 20 \emph{tournaments}:
 
 \begin{itemize}
   \item The tournaments are calculated for the 3 \emph{tasks} and 2 \emph{extension tasks}. If a solution skips a task, it is not considered in the tournament.
-  \item Each solution is measured for both \emph{batch} and \emph{repeated} validation.
   \item Each solution is measured for both \emph{fixed} and \emph{proportional} change sets.
 \end{itemize}
 
@@ -422,7 +421,7 @@ A solution gets from 0 to 1 points for a tournament which is launched for increa
 \begin{itemize}
   \item The model size is increased as long as there is a solution that is able to solve it in the given time limit. This results in \emph{rounds} $k = 1, 2, 3, \ldots, n$ for sizes $2^{k-1}$ ($1, 2, 4, \ldots, 2^{n-1}$).  
   \item For each tournament, a solution earns a score between 0 and 1, determined by
-\[\frac{\sum^{\mathit{n}}_{k=1} \mathit{score}(k)}{\mathit{n}\cdot(\mathit{n}+1)/2}, \]
+\[\frac{\sum^{\mathit{n}}_{k=1} \mathit{score}(k)}{\sum^{\mathit{n}}_{k=1} k}, \]
 
 where
  
@@ -434,7 +433,7 @@ where
 \end{cases}
 \]
 
-and $\mathit{n}\cdot(\mathit{n}+1)/2 = 1 + 2 + 3 + \ldots + n$ is used for normalizing the result.
+and $\sum^{\mathit{n}}_{k=1} k = \mathit{n}\cdot(\mathit{n}+1)/2$ is used for normalizing the result.
 
   \item For each round $\mathit{k}$ from 1 to $n$, if a solution is able to complete the validation, it is rewarded $k$ points:
   	\begin{itemize}
@@ -464,7 +463,7 @@ and $\mathit{n}\cdot(\mathit{n}+1)/2 = 1 + 2 + 3 + \ldots + n$ is used for norma
 
 In conclusion, a solution earns up to 20 points for \textbf{performance}:
 
-\noindent\framebox[\textwidth][c]{(3 Tasks + 2 Extension Tasks) $\times$ 2 validation scenario $\times$ 2 change set sizes $\times$ up to 1 points = 20 points}
+\noindent\framebox[\textwidth][c]{(3 Tasks + 2 Extension Tasks) $\times$ 2 change set sizes $\times$ up to 1 points $\times$ 2 = 20 points}
 
 \subsection{Overall Evaluation}
 
