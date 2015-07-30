@@ -274,6 +274,7 @@ To aid the development of case solutions, we provide a framework using predefine
 \end{table}
 
 \subsubsection{EMF Models}
+\label{emf-models}
 
 The EMF models are serialized to standard XMI format using the generated EMF code. The injection of errors during the instance model generation (\autoref{instancemodels}) causes some containment errors. Invalid elements violating the containment hierarchy could not be serialized. As the benchmark requires invalid models, the invalid elements are connected to the root element of the instance model by the \textsf{invalids} reference~\figref{railway-inheritance}.
 
@@ -288,7 +289,7 @@ The matches in the match set may be returned in any collection (e.g.\ a list or 
 
 To \emph{compare} matches $M_1 = \langle a_1, a_2, \ldots, a_n \rangle$ and $M_2 = \langle b_1, b_2, \ldots b_n \rangle$, we take the first elements in each match ($a_1$ and $b_1$) and compare their identifiers. If the first elements are equal, we compare the second elements ($a_2$ and $b_2$) and so on until we find two different model elements. This is guaranteed by the fact that the collection is unique, so it cannot contain two identical matches.
 
-For example, for the \textsf{RouteSensor} query (\autoref{routesensor}), a match set may be returned by tool $A$ as list
+For example, for the \textsf{RouteSensor} query, a match set may be returned by tool $A$ as list
 \[\left(
 \langle\textsf{route}: 8, \textsf{sensor}: 12, \textsf{switchPosition}: 4, \textsf{sw}: 10\rangle;
 \langle\textsf{route}: 5, \textsf{sensor}: 1, \textsf{switchPosition}: 13, \textsf{sw}: 7\rangle
@@ -303,7 +304,7 @@ For both implementations, the framework creates a \emph{sorted copy}, resulting 
 \langle\textsf{route}: 5, \textsf{sensor}: 1, \textsf{switchPosition}: 13, \textsf{sw}: 7\rangle;
 \langle\textsf{route}: 8, \textsf{sensor}: 12, \textsf{switchPosition}: 4, \textsf{sw}: 10\rangle
 \right)\]
-The ordered list is also used to ensure that the transformations (\autoref{transformations}) are performed on the same model elements, regardless of the return order of the match set.
+The ordered list is also used to ensure that the transformations are performed on the same model elements, regardless of the return order of the match set.
 
 \subsection{Building the Projects}
 
