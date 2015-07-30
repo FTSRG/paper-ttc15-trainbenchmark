@@ -45,27 +45,16 @@
 \newcommand{\ttcfig}[2]{
 \begin{figure}[htb] 
 	\centering
-	\includegraphics[width=0.75\textwidth]{figures/#1}
+	\includegraphics[width=0.8\textwidth]{figures/#1}
 	\caption{#2.}
+	\vspace{-1em}
 	\label{fig:#1}
 \end{figure}}
 
-%\newcommand{\ttcpattern}[1]{
-%\begin{figure}[H] 
-%	\centering
-%	\includegraphics[scale=0.3]{figures/#1}
-%\end{figure}}
-
-%\newcommand{\ttctransformation}[1]{
-%	\includegraphics[scale=0.24]{figures/pattern-#1}
-%	\includegraphics[scale=0.24]{figures/transformation-#1}
-%	\\
-%}
-
 \newcommand{\ttctransformation}[2]{
-	\begin{wrapfigure}{r}{6cm}
+	\begin{wrapfigure}{r}{7cm}
 		\centering
-		\vspace{-3em}
+		\vspace{-1em}
 		\includegraphics[scale=0.22]{figures/transformation-#1}
 		\vspace{-1em}
 		\footnotesize
@@ -125,9 +114,15 @@ During the development of safety critical software like automotive, avionics or 
 
 Model validation problems are often addressed by model transformation engines: error cases are defined by model queries, the results of which can be automatically repaired by transformation steps. In practice, this is challenging due to two factors: (i) \emph{instance model sizes} are exhibiting a tremendous growth as the complexity of systems-under-design is increasing, (ii) the \emph{sophistication of validation constraints} in toolchains is increasing. As a consequence, validation of industrial models is challenging or may become completely unfeasible.
 
-To address this challenge, the \tb is a macro benchmark that aims to measure repetitive query evaluation performance. While there are a number of existing benchmarks for queries over relational databases~\cite{TPC-C, Wisconsin} and triplestores~\cite{BSBM, SP2Bench, DBpedia, LUBM}, modeling tool workloads for well-formedness constraint validation are significantly different~\cite{ase2013}. Specifically, modeling tools use much more complex queries than typical transactional systems, and the real world performance is more affected by response time (i.e.\ execution time for a specific operation such as validation or transformation) rather than throughput (i.e.\ the number of parallel transactions). Also, previous TTC cases did not focus on measuring the performance of query reevaluation.
+To address this challenge, the \tb is a macro benchmark that aims to measure repetitive query evaluation performance. While there are a number of existing benchmarks for queries over relational databases%~\cite{TPC-C, Wisconsin} 
+and triplestores, %~\cite{BSBM, SP2Bench, DBpedia, LUBM}, 
+modeling tool workloads for well-formedness constraint validation are significantly different~\cite{ase2013}. Specifically, modeling tools use much more complex queries than typical transactional systems, and the real world performance is more affected by response time (i.e.\ execution time for a specific operation such as validation or transformation) rather than throughput (i.e.\ the number of parallel transactions). Also, previous TTC cases did not focus on measuring the performance of query reevaluation.
 
-The \tb defines a scenario that is specifically modeled after \emph{model validation} in (domain-specific) modeling tools: at first, the entire model is validated, then each model transformation is followed by an immediate revalidation. The primary goal of the benchmark is to measure the execution time of each phase. The benchmark uses a domain-specific model of a railway system that originates from the \mbox{MOGENTES} EU FP7~\cite{MOGENTES} project, where both the metamodel and the well-formedness rules were defined by railway domain experts. Some of the queries are in close correspondence with constraints in the AUTOSAR standard~\cite{AUTOSAR}. This case is based on the \tb~\cite{TrainBenchmarkTechReport}, a benchmark framework previously used in various papers~\cite{bigmde2013, ase2013, bigmde2014, models2014, scp2015}.
+%The \tb defines a scenario that is specifically modeled after \emph{model validation} in (domain-specific) modeling tools: at first, the entire model is validated, then each model transformation is followed by an immediate revalidation. The primary goal of the benchmark is to measure the execution time of each phase. The benchmark uses a domain-specific model of a railway system that originates from the \mbox{MOGENTES} EU FP7~\cite{MOGENTES} project, where both the metamodel and the well-formedness rules were defined by railway domain experts. Some of the queries are in close correspondence with constraints in the AUTOSAR standard~\cite{AUTOSAR}. 
+
+The source code is available at \url{https://github.com/FTSRG/trainbenchmark-ttc}. This case is strongly based on the \tb~\cite{TrainBenchmarkTechReport}, an ongoing benchmark project of our research group. 
+
+%~\cite{bigmde2013, ase2013, bigmde2014, models2014, scp2015}.
 
 \section{Case Description}
 
@@ -191,54 +186,42 @@ For each task, we present the well-formedness constraints. The \emph{queries} ar
   \item The insertions are with a \textcolor{newcolor}{\guillemotleft{}new\guillemotright{}} caption. Attribute updates are also show in \textcolor{newcolor}{green}. % while deletions are marked with a \textcolor{delcolor}{\guillemotleft{}del\guillemotright{}} caption
 \end{compactitem}
 
-\subsection{Task 1: PosLength}
-\label{poslength}
-
 \ttctransformation{poslength}{\tuple{segment}}
-\textbf{Description.} Every segment must have a positive length. \\
-\textbf{Query.} The query checks for segments with a length less than or equal to zero. \\
-\textbf{Repair transformation.} The \textsf{length} attribute of the \textsf{segment} in the match is updated to $- \mathsf{length} + 1$. \\
-\textbf{Goal.} This query defines an attribute check. This is a common use case in validation scenarios.
 
+\paragraph{PosLength.} Every segment must have a positive length.
 
-\subsection{Task 2: SwitchSensor}
-\label{switchsensor}
+\noindent\textit{Query.} The query checks for segments with a length less than or equal to zero. \\
+\textit{Repair transformation.} The \textsf{length} attribute of the \textsf{segment} in the match is updated to $- \mathsf{length} + 1$. \\
+\textit{Goal.} This query defines an attribute check. This is a common use case in validation scenarios.
+
 
 \ttctransformation{switchsensor}{\tuple{sw}}
-\textbf{Description.} Every switch must have at least one sensor connected to it. \\
-\textbf{Query.} The query checks for switches that have no sensors associated with them. \\
-\textbf{Repair transformation.} A \textsf{sensor} is created and connected to the \textsf{switch}. \\
-\textbf{Goal.} This query checks whether an object is connected to a relation. This pattern is common in more complex queries, e.g.\ it is used in the \textsf{RouteSensor} and the \textsf{SemaphoreNeighbor} queries.
+\paragraph{SwitchSensor.} Every switch must have at least one sensor connected to it.
 
+\noindent\textit{Query.} The query checks for switches that have no sensors associated with them. \\
+\textit{Repair transformation.} A \textsf{sensor} is created and connected to the \textsf{switch}. \\
+\textit{Goal.} This query checks whether an object is connected to a relation. This pattern is common in more complex queries, e.g.\ it is used in the \textsf{RouteSensor} and the \textsf{SemaphoreNeighbor} queries.
 
-\subsection{Task 3: SwitchSet}
-\label{switchset}
 
 \ttctransformation{switchset}{\tuple{semaphore, route, swP, sw}}
-\textbf{Description.} The entry semaphore of a route may only show GO if all switches along the route are in the position prescribed by the route. \\
-\textbf{Query.} The query checks for routes which have a semaphore that show the GO signal. Additionally, the route follows a switch position (\textsf{swP}) that is connected to a switch (\textsf{sw}), but the switch position (\textsf{swP.position}) defines a different position from the current position of the switch (\textsf{sw.currentPosition}). \\
-\textbf{Repair transformation.} The \textsf{currentPosition} attribute of the \textsf{switch} is set to the \textsf{position} of \textsf{swP}. \\
-\textbf{Goal.} This pattern tests the efficiency of the join and filtering operations.
-
-\subsection{Extension Task 1: RouteSensor}
-\label{routesensor}
+\paragraph{SwitchSet.} The entry semaphore of a route may only show GO if all switches along the route are in the position prescribed by the route. \\
+\textit{Query.} The query checks for routes which have a semaphore that show the GO signal. Additionally, the route follows a switch position (\textsf{swP}) that is connected to a switch (\textsf{sw}), but the switch position (\textsf{swP.position}) defines a different position from the current position of the switch (\textsf{sw.currentPosition}). \\
+\textit{Repair transformation.} The \textsf{currentPosition} attribute of the \textsf{switch} is set to the \textsf{position} of \textsf{swP}. \\
+\textit{Goal.} This pattern tests the efficiency of the join and filtering operations.
 
 \ttctransformation{routesensor}{\tuple{route, sensor, swP, sw}}
-\textbf{Description.} All sensors that are associated with a switch that belongs to a route must also be associated directly with the same route. \\
-\textbf{Query.} The query looks for sensors that are connected to a switch, but the sensor and the switch are not connected to the same route. \\
+\paragraph{RouteSensor.} All sensors that are associated with a switch that belongs to a route must also be associated directly with the same route. \\
+\textit{Query.} The query looks for sensors that are connected to a switch, but the sensor and the switch are not connected to the same route. \\
 %\textbf{Match.} $} \rangle$ \\
-\textbf{Repair transformation.} The missing \textsf{definedBy} edge is inserted by connecting the \textsf{route} in the match to the \textsf{sensor}. \\
-\textbf{Goal.} This pattern checks for the absence of circles, so the efficiency of the join and the antijoin operations is tested.
-
-\subsection{Extension Task 2: SemaphoreNeighbor}
-\label{semaphoreneighbor}
+\textit{Repair transformation.} The missing \textsf{definedBy} edge is inserted by connecting the \textsf{route} in the match to the \textsf{sensor}. \\
+\textit{Goal.} This pattern checks for the absence of circles, so the efficiency of the join and the antijoin operations is tested.
 
 \ttctransformation{semaphoreneighbor}{\langle & \sf semaphore, route1, route2, \\ & \sf sensor1, sensor2, te1, te2 \rangle}
-\textbf{Description.} Routes that are connected through sensors and track elements must belong to the same semaphore. \\
-\textbf{Query.} The query checks for routes (\textsf{route1}) which have an exit semaphore (\textsf{semaphore}) and a sensor (\textsf{sensor1}) connected to a track element (\textsf{te1}). This track element is connected to another track element (\textsf{te2}) which is connected to another sensor (\textsf{sensor2}) which (partially) defines another, different route (\textsf{route2}), while the semaphore is not on the entry of this route (\textsf{route2}). \\
+\paragraph{SemaphoreNeighbor.} Routes that are connected through sensors and track elements must belong to the same semaphore. \\
+\textit{Query.} The query checks for routes (\textsf{route1}) which have an exit semaphore (\textsf{semaphore}) and a sensor (\textsf{sensor1}) connected to a track element (\textsf{te1}). This track element is connected to another track element (\textsf{te2}) which is connected to another sensor (\textsf{sensor2}) which (partially) defines another, different route (\textsf{route2}), while the semaphore is not on the entry of this route (\textsf{route2}). \\
 %\ttctransformation{semaphoreneighbor}
-\textbf{Repair transformation.} The \textsf{route2} node is connected to the \textsf{semaphore} node with an \textsf{entry} edge. \\
-\textbf{Goal.} This pattern checks for the absence of circles, so the efficiency of the join operation is tested. One-way navigable references are also present in the constraint, so the efficiency of their evaluation is also measured. Subsumption inference is required, as the two track elements can be switches or segments.
+\textit{Repair transformation.} The \textsf{route2} node is connected to the \textsf{semaphore} node with an \textsf{entry} edge. \\
+\textit{Goal.} This pattern checks for the absence of circles, so the efficiency of the join operation is tested. One-way navigable references are also present in the constraint, so the efficiency of their evaluation is also measured. Subsumption inference is required, as the two track elements can be switches or segments.
 
 \paragraph{Acknowledgements.} The authors would like to thank Benedek Izsó for originally designing and implementing the \tb, Tassilo Horn for providing valuable comments regarding both the specification of the case and the implementation of the benchmark framework, and Zsolt Kővári for his contributions in the benchmark and visualization scripts.
 
@@ -251,14 +234,29 @@ For each task, we present the well-formedness constraints. The \emph{queries} ar
 
 \section{Metamodel}
 
-\begin{figure}
+\begin{figure}[h!]
 	\centering
-	%\ttcsubfig{railway-containments}{Containment hierarchy and references}
-	~
-	%\ttcsubfig{railway-inheritance}{Supertype relations}
+	\begin{subfigure}[b]{\textwidth}
+		\centering
+		\includegraphics[scale=0.6]{figures/railway-containments}
+		\caption{Containment hierarchy and references}
+		\label{fig:railway-containments}
+	\end{subfigure}
+		\begin{subfigure}[b]{\textwidth}
+			\centering
+			\includegraphics[scale=0.6]{figures/railway-inheritance}
+			\caption{Supertype relations}
+			\label{fig:railway-inheritance}
+		\end{subfigure}
 	\caption{The metamodel of the \tb.}
 	\label{fig:metamodel}
 \end{figure}
+
+\section{Implementation}
+
+To aid the development of case solutions, we provide a framework using predefined input and output formats, along with two reference implementations.
+
+\subsection{Instance Model Formats}
 
 \begin{table}
 	\centering
@@ -274,12 +272,6 @@ For each task, we present the well-formedness constraints. The \emph{queries} ar
 	\caption{Error percentages in the generated instance model.}
 	\label{tab:errorpercentages}
 \end{table}
-
-\section{Implementation}
-
-To aid the development of case solutions, we provide a framework using predefined input and output formats, along with two reference implementations. The source code and documentation is available at \url{https://github.com/FTSRG/trainbenchmark-ttc}.
-
-\subsection{Instance Model Formats}
 
 \subsubsection{EMF Models}
 
@@ -337,14 +329,14 @@ The default configuration is stored in the \texttt{config/config.json} file. Ple
 
 \begin{lstlisting}
 {
-"MinSize": 1,
-"MaxSize": 2,
-"Queries": ["PosLength", "RouteSensor", "SwitchSensor", "SwitchSet", "SemaphoreNeighbor"],
-"Tools": [<your tool>],
-"ChangeSets": ["fixed", "proportional"],
-"Runs": 1,
-"IterationCount": 5,
-"JVM": {"vmargs": "-Xmx4G"}
+  "MinSize": 1,
+  "MaxSize": 2,
+  "Queries": ["PosLength", "RouteSensor", "SwitchSensor", "SwitchSet", "SemaphoreNeighbor"],
+  "Tools": [<your tool>],
+  "ChangeSets": ["fixed", "proportional"],
+  "Runs": 1,
+  "IterationCount": 5,
+  "JVM": {"vmargs": "-Xmx4G"}
 }
 \end{lstlisting}
 
@@ -365,7 +357,7 @@ We provide the number of invalid model elements in several models detected by ou
 
 The expected results are available at \url{https://github.com/FTSRG/trainbenchmark-ttc/tree/master/expected-results}.
 
-Each task and extension task is scored independently $0-3$ points by the following rules:
+Each task is scored independently $0-3$ points by the following rules:
 \begin{itemize}
 	\item $\mathbf{0}$   \textbf{points:} The task is not solved.
 	\item $\mathbf{1-2}$ \textbf{points:} The task is partially solved, the solution provides the subset or the superset of the expected results.
@@ -373,7 +365,7 @@ Each task and extension task is scored independently $0-3$ points by the followi
 	\item $\mathbf{-1}$  \textbf{point:} Only the query is implemented, but the transformation is not.
 \end{itemize}
 
-\noindent\framebox[\textwidth][c]{\textbf{Correctness and completeness:} (3 Tasks + 2 Extension Tasks) $\times$ 3 points = 15 points}
+\noindent\framebox[\textwidth][c]{\textbf{Correctness and completeness:} $ 5~\textrm{tasks} \times 3~\textrm{points} = 15~\textrm{points} $}
 
 \subsection{Conciseness}
 
@@ -387,7 +379,7 @@ The validation rules are frequently changed and extended, therefore it is import
 	\item $\mathbf{-1}$  \textbf{point:} Either the query or the transformation is implemented.
 \end{itemize}
 
-\noindent\framebox[\textwidth][c]{\textbf{Conciseness:} (3 Tasks + 2 Extension Tasks) $\times$ 3 points = 15 points}
+\noindent\framebox[\textwidth][c]{\textbf{Conciseness:} $5~\textrm{tasks} \times 3~\textrm{points} = 15~\textrm{points}$}
 
 \subsection{Readability}
 
@@ -400,7 +392,7 @@ The readability and descriptive power of each query and transformation is scored
 	\item $\mathbf{-1}$  \textbf{point:} If the language is only able to express either the constraint (e.g.\ OCL) or the repair operation.
 \end{itemize}
 
-\noindent\framebox[\textwidth][c]{\textbf{Readability:} (3 Tasks + 2 Extension Tasks) $\times$ 3 points = 15 points}
+\noindent\framebox[\textwidth][c]{\textbf{Readability:} $5~\textrm{tasks} \times 3~\textrm{points} = 15~\textrm{points}$}
 
 \subsection{Performance on Large Models}
 The goal of the performance measurements is to check the applicability of the submitted solutions on large industrial models. During the performance tests the execution times will be measured for different scenarios and increasing model sizes.
@@ -417,7 +409,7 @@ We defined two validation scenarios, based on the phases defined in~\autoref{sec
 The performance of the solutions are compared in 20 \emph{tournaments}:
 
 \begin{itemize}
-	\item The tournaments are calculated for the 3 \emph{tasks} and 2 \emph{extension tasks}. If a solution skips a task, it is not considered in the tournament.
+	\item The tournaments are calculated for the 5 tasks. If a solution skips a task, it is not considered in the tournament.
 	\item Each solution is measured for both \emph{batch} and \emph{repeated} validation.
 	\item Each solution is measured for both \emph{fixed} and \emph{proportional} change sets.
 \end{itemize}
@@ -469,78 +461,14 @@ A solution gets from 0 to 1 points for a tournament which is launched for increa
 
 In conclusion, a solution earns up to 20 points for \textbf{performance}:
 
-\noindent\framebox[\textwidth][c]{(3 Tasks + 2 Extension Tasks) $\times$ 2 validation scenarios $\times$ 2 change set sizes $\times$ up to 1 points = 20 points}
+\noindent\framebox[\textwidth][c]{$5~\textrm{tasks} \times 2~\textrm{validation scenarios} \times 2~\textrm{change set sizes } \times \textrm{up to 1 points} = 20~\textrm{points}$}
 
 \subsection{Overall Evaluation}
 
 The scores of each aspect of the submitted solution are summarized to derive the final score (max.\ 65 points) used for ranking the submitted solutions.
 
-\ttcfig{railway-yed}{Well-formed railway instance model}
+\include{example-output}
 
-\begin{table}
-\centering
-\footnotesize
-\begin{tabular}{| l | r | l | r | l | l | r | l | r |}
-\hline
-\sf ChangeSet & \sf RunIndex & \sf Tool & \sf Size & \sf Query & \sf PhaseName & \sf Iteration & \sf MetricName & \sf MetricValue\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & check & 0 & rss & 43\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 1 & rss & 33\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 2 & rss & 23\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 3 & rss & 13\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 4 & rss & 3\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 5 & rss & 0\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 6 & rss & 0\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 7 & rss & 0\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 8 & rss & 0\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 9 & rss & 0\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 10 & rss & 0\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & read & 0 & time & 754739233\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & read & 0 & memory & 6711048\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & check & 0 & time & 51752\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & check & 0 & memory & 6582280\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 1 & time & 5116\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 1 & memory & 2848944\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 2 & time & 4304\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 2 & memory & 2823352\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 3 & time & 8533\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 3 & memory & 2798328\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 4 & time & 4362\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 4 & memory & 2781144\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 5 & time & 4086\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 5 & memory & 2780248\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 6 & time & 4723\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 6 & memory & 2780344\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 7 & time & 8350\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 7 & memory & 2780440\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 8 & time & 12007\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 8 & memory & 2780536\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 9 & time & 4107\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 9 & memory & 2780632\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 10 & time & 21459\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & recheck & 10 & memory & 2780776\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 1 & time & 2861134\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 1 & memory & 2855192\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 2 & time & 3558045\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 2 & memory & 2824640\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 3 & time & 1090021\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 3 & memory & 2800656\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 4 & time & 1062007\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 4 & memory & 2781272\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 5 & time & 1235721\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 5 & memory & 2780336\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 6 & time & 8123\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 6 & memory & 2780360\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 7 & time & 3636\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 7 & memory & 2780456\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 8 & time & 14451\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 8 & memory & 2780552\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 9 & time & 2880\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 9 & memory & 2780648\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 10 & time & 3767\\\hline
-fixed & 1 & EMFIncQuery & 1 & PosLength & repair & 10 & memory & 2780744\\\hline
-\end{tabular}
-\caption{Example output of the benchmark measurements.}
-\label{tab:exampleoutput}
-\end{table}
+\ttcfig{railway-yed}{Well-formed railway instance model}
 
 \end{document}
