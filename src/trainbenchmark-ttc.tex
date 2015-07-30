@@ -43,9 +43,9 @@
 \setlength{\parskip}{0em}
 
 \newcommand{\ttcfig}[2]{
-\begin{figure}[t] 
+\begin{figure}[htb] 
 	\centering
-	\includegraphics[width=0.8\textwidth]{figures/#1}
+	\includegraphics[width=0.75\textwidth]{figures/#1}
 	\caption{#2.}
 	\label{fig:#1}
 \end{figure}}
@@ -65,7 +65,7 @@
 \newcommand{\ttctransformation}[2]{
 	\begin{wrapfigure}{r}{6cm}
 		\centering
-		\vspace{-1em}
+		\vspace{-3em}
 		\includegraphics[scale=0.22]{figures/transformation-#1}
 		\vspace{-1em}
 		\footnotesize
@@ -147,10 +147,6 @@ Every railway element is a subtype of the class \textsf{RailwayElement} which ha
 The instance models are systematically generated for the metamodel: small model fragments are created and connected to each other. Based on the model queries, the generator injects errors to the model by removing edges and changing attribute values with a certain probability. The probability of injecting an error to violate a pattern (\autoref{tasks}) is shown in~\autoref{tab:errorpercentages}.
 
 This generation method controls the number of matches of all defined model queries. To avoid highly symmetric models, the exact number of elements and cardinalities are randomized. This brings artificially generated models closer to real world instances and prevents query tools from abusing the artificial regularity of the model.  To assess scalability, the benchmark uses instance models of growing sizes, each model containing twice as many model elements as the previous one. The instance models are designated by powers of two (1, 2, 4, 8, \ldots), the smallest model containing about 5000 model elements. 
-
-\paragraph{EMF Models.} The EMF models are serialized to standard XMI format using the generated EMF code. The injection of errors during the instance model generation (\autoref{instancemodels}) causes some containment errors. Invalid elements violating the containment hierarchy could not be serialized. As the benchmark requires invalid models, the invalid elements are connected to the root element of the instance model by the \textsf{invalids} reference~\figref{railway-inheritance}.
-
-\paragraph{Non-EMF Models.} The generator defines a graph-like interface for creating the models. The EMF model generator is an implementation of this interface. To generate non-EMF models, the following approaches are recommended: (1) either create a custom class which implements the \textsf{Generator} interface or (2) generate the EMF models and convert them to another representation.
 
 \subsection{Benchmark Phases}
 \label{sec:phases}
@@ -282,6 +278,16 @@ For each task, we present the well-formedness constraints. The \emph{queries} ar
 \section{Implementation}
 
 To aid the development of case solutions, we provide a framework using predefined input and output formats, along with two reference implementations. The source code and documentation is available at \url{https://github.com/FTSRG/trainbenchmark-ttc}.
+
+\subsection{Instance Model Formats}
+
+\subsubsection{EMF Models}
+
+The EMF models are serialized to standard XMI format using the generated EMF code. The injection of errors during the instance model generation (\autoref{instancemodels}) causes some containment errors. Invalid elements violating the containment hierarchy could not be serialized. As the benchmark requires invalid models, the invalid elements are connected to the root element of the instance model by the \textsf{invalids} reference~\figref{railway-inheritance}.
+
+\subsubsection{Non-EMF Models}
+
+The generator defines a graph-like interface for creating the models. The EMF model generator is an implementation of this interface. To generate non-EMF models, the following approaches are recommended: (1) either create a custom class which implements the \textsf{Generator} interface or (2) generate the EMF models and convert them to another representation.
 
 \subsection{Ordering of the Match Set}
 \label{ordering}
