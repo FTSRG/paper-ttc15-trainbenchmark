@@ -15,6 +15,8 @@
 \usepackage{listings}
 \usepackage{framed}
 \usepackage{xfrac}
+\usepackage{placeins}
+\usepackage{paralist}
 
 \sloppy
 % custom commands
@@ -36,19 +38,27 @@
 \renewcommand{\subsectionautorefname}{Section}
 \renewcommand{\subsubsectionautorefname}{Section}
 
+\setlength{\parskip}{0em}
+
 \newcommand{\ttcfig}[2]{
 \begin{figure}[htb] 
 	\centering
-	\includegraphics[width=\textwidth]{figures/#1}
+	\includegraphics[width=0.8\textwidth]{figures/#1}
 	\caption{#2.}
 	\label{fig:#1}
 \end{figure}}
 
-\newcommand{\ttcpattern}[1]{
-\begin{figure}[H] 
-	\centering
-	\includegraphics[scale=0.3]{figures/#1}
-\end{figure}}
+%\newcommand{\ttcpattern}[1]{
+%\begin{figure}[H] 
+%	\centering
+%	\includegraphics[scale=0.3]{figures/#1}
+%\end{figure}}
+
+\newcommand{\ttctransformation}[1]{
+	\includegraphics[scale=0.24]{figures/pattern-#1}
+	\includegraphics[scale=0.24]{figures/transformation-#1}
+	\\
+}
 
 \newcommand{\ttcfigscale}[3]{
 \begin{figure}[htb]
@@ -57,15 +67,6 @@
 	\caption{#2.}
 	\label{fig:#1}
 \end{figure}}
-
-\newcommand{\ttcsubfig}[2]{
-	\begin{subfigure}[b]{\textwidth}
-		\centering
-		\includegraphics[scale=0.6]{figures/#1}
-		\caption{#2}
-		\label{fig:#1}
-	\end{subfigure}
-}
 
 \definecolor{lightgray}{rgb}{0.95,0.95,0.95}
 \lstset{
@@ -114,18 +115,7 @@ The \tb defines a scenario that is specifically modeled after \emph{model valida
 
 \section{Case Description}
 
-% domainnek a termeszetes leirasa
-
 A \emph{benchmark case} configuration in the \tb consists of an \emph{instance model} (\autoref{instancemodels}), a \emph{query} and a \emph{repair transformation} (\autoref{tasks}) describing constraint violating elements. As a result of a benchmark case run, the \emph{execution times} of each phase, the \emph{memory usage} and the \emph{number of invalid elements} are measured and recorded. The number of invalid elements are used to check the correctness of the validation, however the collection of element identifiers must also be available for later processing.
-
-\begin{figure}
-	\centering
-	\ttcsubfig{railway-containments}{Containment hierarchy and references}
-	~
-	\ttcsubfig{railway-inheritance}{Supertype relations}
-	\caption{The metamodel of the \tb.}
-	\label{fig:metamodel}
-\end{figure}
 
 \subsection{Metamodel}
 
@@ -140,38 +130,11 @@ Every railway element is a subtype of the class \textsf{RailwayElement} which ha
 
 The instance models are systematically generated for the metamodel: small model fragments are created and connected to each other. Based on the model queries, the generator injects errors to the model by removing edges and changing attribute values with a certain probability. The probability of injecting an error to violate a pattern (\autoref{tasks}) is shown in~\autoref{tab:errorpercentages}.
 
-\begin{table}
-\centering
-\begin{tabular}{ | l | c | }
-\hline
-\bf attribute / edge & \bf error percentage \\\hline
-\sf Segment.length          & 6\%  \\\hline
-\sf Route.definedBy         & 10\% \\\hline
-\sf Route.exit              & 15\% \\\hline
-\sf Switch.sensor           & 35\% \\\hline
-\sf SwitchPosition.position & 30\% \\\hline
-\end{tabular}
-\caption{Error percentages in the generated instance model.}
-\label{tab:errorpercentages}
-\end{table}
+This generation method controls the number of matches of all defined model queries. To avoid highly symmetric models, the exact number of elements and cardinalities are randomized. This brings artificially generated models closer to real world instances and prevents query tools from abusing the artificial regularity of the model.  To assess scalability, the benchmark uses instance models of growing sizes, each model containing twice as many model elements as the previous one. The instance models are designated by powers of two (1, 2, 4, 8, \ldots), the smallest model containing about 5000 model elements. 
 
-This generation method controls the number of matches of all defined model queries. To avoid highly symmetric models, the exact number of elements and cardinalities are randomized. This brings artificially generated models closer to real world instances and prevents query tools from abusing the artificial regularity of the model. 
+\paragraph{EMF Models.} The EMF models are serialized to standard XMI format using the generated EMF code. The injection of errors during the instance model generation (\autoref{instancemodels}) causes some containment errors. Invalid elements violating the containment hierarchy could not be serialized. As the benchmark requires invalid models, the invalid elements are connected to the root element of the instance model by the \textsf{invalids} reference~\figref{railway-inheritance}.
 
-To assess scalability, the benchmark uses instance models of growing sizes, each model containing twice as many model elements as the previous one. The instance models are designated by powers of two (1, 2, 4, 8, \ldots), the smallest model containing about 5000 model elements. 
-
-\subsubsection{EMF Models}
-\label{emf-models}
-
-The EMF models are serialized to standard XMI format using the generated EMF code. The injection of errors during the instance model generation (\autoref{instancemodels}) causes some containment errors. Invalid elements violating the containment hierarchy could not be serialized. As the benchmark requires invalid models, the invalid elements are connected to the root element of the instance model by the \textsf{invalids} reference~\figref{railway-inheritance}.
-
-\subsubsection{Non-EMF Models}
-
-The generator defines a graph-like interface for creating the models. The EMF model generator is an implementation of this interface. To generate non-EMF models, the following approaches are recommended:
-
-\begin{itemize}
-  \item either create a custom class which implements the \textsf{Generator} interface or
-  \item generate the EMF models and convert them to another representation.
-\end{itemize}
+\paragraph{Non-EMF Models.} The generator defines a graph-like interface for creating the models. The EMF model generator is an implementation of this interface. To generate non-EMF models, the following approaches are recommended: (1) either create a custom class which implements the \textsf{Generator} interface or (2) generate the EMF models and convert them to another representation.
 
 \subsection{Benchmark Phases}
 \label{sec:phases}
@@ -180,28 +143,130 @@ The generator defines a graph-like interface for creating the models. The EMF mo
 
 To simulate a typical validation workload, four \emph{phases} were defined (\figref{benchmark-phases}).
 
-\begin{enumerate}
+\begin{compactenum}
 	\item During the \textsf{read} phase, the instance model is loaded from hard drive to memory. This includes the parsing of the input as well as initializing data structures (e.g.\ indexes) of the tool.
 	\item In the \textsf{check} phase, the instance model is queried to identify invalid elements. The result of this phase is a set of the invalid elements, which will be used in the next phase.
 	\item In the \textsf{repair} phase, the model is changed to simulate the effects (and measure the performance) of model modifying operations. The transformations are always performed on a subset of the model elements returned by the \textsf{check} phase.
 	\item The revalidation of the model is carried out in the \textsf{recheck} phase similarly to the \textsf{check} phase. In real-world scenarios, there are often multiple transformations in the system which may interfere with the results of the query. Because of this, we require the tools to reevaluate the query with regards to the current state of the model.
-\end{enumerate}
+\end{compactenum}
 
 The repair operation intends to fix invalid models elements based on the invalid objects identified during the previous \textsf{check} or \textsf{recheck} phase. We defined two strategies to determine the size of the change set:
 
-\begin{description}
+\begin{compactdesc}
 \item[fixed] 10 of invalid model elements is modified. This tests the efficiency of handling small change sets.
-\item[proportional] 10\% of the latest result set is modified. This tests the efficiency of handling large change sets.
-\end{description}
+\item[proportional] 10\% of the result set is modified. This tests the efficiency of handling large change sets.
+\end{compactdesc}
 
 \subsection{Queries}
 \label{queries}
 
 The \emph{queries} used in the validation scenario are introduced both informally and as graph patterns. In complexity, the queries range from simple attribute value checks to complex path constraints consisting of several join operations: two simple queries use at most 2 objects (\textsf{PosLength} and \textsf{SwitchSensor}) and three complex queries use 4--8 objects and multiple join operations (\textsf{RouteSensor}, \textsf{SemaphoreNeighbor}, \textsf{SwitchSet}). 
 
-\subsubsection{Graph Patterns}
+\subsubsection{Graph Patterns and Transformations}
 
 The purpose of the queries is to check well-formedness constraints by matching graph patterns looking for errors in the model. The \emph{graph patterns} are defined by a \emph{name}, a list of symbolic object parameters and the constraints to be satisfied by the parameters. A \emph{pattern match} maps each symbolic parameter to a model object, where the mapping satisfies the conditions defined by the constraints. The result of the query is the set of all possible matches. The absence of pattern matches means that the model is well-formed, and the matches of the error pattern marks the invalid elements. The \emph{match set} contains all matches for a given pattern.
+
+In the \emph{repair} phase, some model elements are \emph{deterministically selected} and repaired. In order to ensure \emph{repeatable results}, (1) the elements for transformation are chosen using a pseudorandom generator, (2) the elements are always selected from the deterministically sorted list (\autoref{queries}).
+
+\section{Tasks}
+\label{tasks}
+
+For each task, we present the well-formedness constraints. The \emph{queries} are looking for violations of these constraints. We describe the meaning and the goal of each query and show a graphical notation of the associated graph pattern. We also define the matches as tuples to ensure that the ordering of the matches is consistent between the implementations (\autoref{ordering}). The \emph{repair transformations} are represented as graph transformations.
+
+For defining the patterns and transformations, we used a graphical syntax similar to GROOVE~\cite{rensink2004groove} with a couple of additions:
+
+\begin{compactitem}
+  \item Filter conditions are shown in \textit{italic} font.
+  \item Negative application conditions are shown with in a \textcolor{negcolor}{red} rectangle with the \textcolor{negcolor}{\textsf{NEG}} caption.
+  \item The insertions are with a \textcolor{newcolor}{\guillemotleft{}new\guillemotright{}} caption. Attribute updates are also show in \textcolor{newcolor}{green}. % while deletions are marked with a \textcolor{delcolor}{\guillemotleft{}del\guillemotright{}} caption
+\end{compactitem}
+
+\subsection{Task 1: PosLength}
+\label{poslength}
+\textbf{Description.} Every segment must have a positive length. \\
+\textbf{Query.} The query checks for segments with a length less than or equal to zero. \\
+\ttctransformation{poslength}
+\textbf{Match.} $\langle \mathsf{segment} \rangle$ \\
+\textbf{Repair transformation.} The \textsf{length} attribute of the \textsf{segment} in the match is updated to $- \mathsf{length} + 1$. \\
+\textbf{Goal.} This query defines an attribute check. This is a common use case in validation scenarios.
+
+
+\subsection{Task 2: SwitchSensor}
+\label{switchsensor}
+\textbf{Description.} Every switch must have at least one sensor connected to it. \\
+\textbf{Query.} The query checks for switches that have no sensors associated with them. \\
+\ttctransformation{switchsensor}
+\textbf{Match.} $\langle \mathsf{sw} \rangle$ \\
+\textbf{Repair transformation.} A \textsf{sensor} is created and connected to the \textsf{switch}. \\
+\textbf{Goal.} This query checks whether an object is connected to a relation. This pattern is common in more complex queries, e.g.\ it is used in the \textsf{RouteSensor} and the \textsf{SemaphoreNeighbor} queries.
+
+
+\subsection{Task 3: SwitchSet}
+\label{switchset}
+\textbf{Description.} The entry semaphore of a route may only show GO if all switches along the route are in the position prescribed by the route. \\
+\textbf{Query.} The query checks for routes which have a semaphore that show the GO signal. Additionally, the route follows a switch position (\textsf{swP}) that is connected to a switch (\textsf{sw}), but the switch position (\textsf{swP.position}) defines a different position from the current position of the switch (\textsf{sw.currentPosition}). \\
+\ttctransformation{switchset}
+\textbf{Match.} $\langle \mathsf{semaphore}, \mathsf{route}, \mathsf{swP}, \mathsf{sw} \rangle$ \\
+\textbf{Repair transformation.} The \textsf{currentPosition} attribute of the \textsf{switch} is set to the \textsf{position} of \textsf{swP}. \\
+\textbf{Goal.} This pattern tests the efficiency of the join and filtering operations.
+
+\subsection{Extension Task 1: RouteSensor}
+\label{routesensor}
+\textbf{Description.} All sensors that are associated with a switch that belongs to a route must also be associated directly with the same route. \\
+\textbf{Query.} The query looks for sensors that are connected to a switch, but the sensor and the switch are not connected to the same route. \\
+\ttctransformation{routesensor}
+\textbf{Match.} $\langle \mathsf{route}, \mathsf{sensor}, \mathsf{swP}, \mathsf{sw} \rangle$ \\
+\textbf{Repair transformation.} The missing \textsf{definedBy} edge is inserted by connecting the \textsf{route} in the match to the \textsf{sensor}. \\
+\textbf{Goal.} This pattern checks for the absence of circles, so the efficiency of the join and the antijoin operations is tested.
+
+
+\subsection{Extension Task 2: SemaphoreNeighbor}
+\label{semaphoreneighbor}
+\textbf{Description.} Routes that are connected through sensors and track elements must belong to the same semaphore. \\
+\textbf{Query.} The query checks for routes (\textsf{route1}) which have an exit semaphore (\textsf{semaphore}) and a sensor (\textsf{sensor1}) connected to a track element (\textsf{te1}). This track element is connected to another track element (\textsf{te2}) which is connected to another sensor (\textsf{sensor2}) which (partially) defines another, different route (\textsf{route2}), while the semaphore is not on the entry of this route (\textsf{route2}). \\
+\ttctransformation{semaphoreneighbor}
+\textbf{Match.} $\langle \mathsf{semaphore}, \mathsf{route1}, \mathsf{route2}, \mathsf{sensor1}, \mathsf{sensor2}, \mathsf{te1}, \mathsf{te2} \rangle$ \\
+\textbf{Repair transformation.} The \textsf{route2} node is connected to the \textsf{semaphore} node with an \textsf{entry} edge. \\
+\textbf{Goal.} This pattern checks for the absence of circles, so the efficiency of the join operation is tested. One-way navigable references are also present in the constraint, so the efficiency of their evaluation is also measured. Subsumption inference is required, as the two track elements can be switches or segments.
+
+\paragraph{Acknowledgements.} The authors would like to thank Benedek Izsó for originally designing and implementing the \tb, Tassilo Horn for providing valuable comments regarding both the specification of the case and the implementation of the benchmark framework, and Zsolt Kővári for his contributions in the benchmark and visualization scripts.
+
+\bibliographystyle{eptcs}
+\bibliography{ttc}
+
+\clearpage
+
+\appendix
+
+\section{Metamodel}
+
+\begin{figure}
+	\centering
+	%\ttcsubfig{railway-containments}{Containment hierarchy and references}
+	~
+	%\ttcsubfig{railway-inheritance}{Supertype relations}
+	\caption{The metamodel of the \tb.}
+	\label{fig:metamodel}
+\end{figure}
+
+\begin{table}
+	\centering
+	\begin{tabular}{ | l | c | }
+		\hline
+		\bf attribute / edge & \bf error percentage \\\hline
+		\sf Segment.length          & 6\%  \\\hline
+		\sf Route.definedBy         & 10\% \\\hline
+		\sf Route.exit              & 15\% \\\hline
+		\sf Switch.sensor           & 35\% \\\hline
+		\sf SwitchPosition.position & 30\% \\\hline
+	\end{tabular}
+	\caption{Error percentages in the generated instance model.}
+	\label{tab:errorpercentages}
+\end{table}
+
+\section{Implementation}
+
+To aid the development of case solutions, we provide a framework using predefined input and output formats, along with two reference implementations. The source code and documentation is available at \url{https://github.com/FTSRG/trainbenchmark-ttc}.
 
 \subsubsection{Ordering of the Match Set}
 \label{ordering}
@@ -210,7 +275,6 @@ The matches in the match set may be returned in any collection (e.g.\ a list or 
 
 To \emph{compare} matches $M_1 = \langle a_1, a_2, \ldots, a_n \rangle$ and $M_2 = \langle b_1, b_2, \ldots b_n \rangle$, we take the first elements in each match ($a_1$ and $b_1$) and compare their identifiers. If the first elements are equal, we compare the second elements ($a_2$ and $b_2$) and so on until we find two different model elements. This is guaranteed by the fact that the collection is unique, so it cannot contain two identical matches.
 
-  
 For example, for the \textsf{RouteSensor} query (\autoref{routesensor}), a match set may be returned by tool $A$ as list
 \[\left(
 \langle\textsf{route}: 8, \textsf{sensor}: 12, \textsf{switchPosition}: 4, \textsf{sw}: 10\rangle;
@@ -228,86 +292,6 @@ For both implementations, the framework creates a \emph{sorted copy}, resulting 
 \right)\]
 The ordered list is also used to ensure that the transformations (\autoref{transformations}) are performed on the same model elements, regardless of the return order of the match set.
 
-\subsection{Transformations}
-\label{transformations}
-
-In the \emph{repair} phase, some model elements are \emph{deterministically selected} and repaired. In order to ensure \emph{repeatable results},
-
-\begin{itemize}
-  \item the elements for transformation are chosen using a pseudorandom generator with a fixed random seed,
-  \item the elements are always selected from the deterministically sorted list (\autoref{queries}).
-\end{itemize}
-
-\section{Tasks}
-\label{tasks}
-
-For each task, we present the well-formedness constraints. The \emph{queries} are looking for violations of these constraints. We describe the meaning and the goal of each query and show a graphical notation of the associated graph pattern. We also define the matches as tuples to ensure that the ordering of the matches is consistent between the implementations (\autoref{ordering}). The \emph{repair transformations} are represented as graph transformations.
-
-For defining the patterns and transformations, we used a graphical syntax similar to GROOVE~\cite{rensink2004groove} with a couple of additions:
-
-\begin{itemize}
-  \item Filter conditions are shown in \textit{italic} font.
-  \item Negative application conditions are shown with in a \textcolor{negcolor}{red} rectangle with the \textcolor{negcolor}{\textsf{NEG}} caption.
-  \item The insertions are with a \textcolor{newcolor}{\guillemotleft{}new\guillemotright{}} caption. Attribute updates are also show in \textcolor{newcolor}{green}. % while deletions are marked with a \textcolor{delcolor}{\guillemotleft{}del\guillemotright{}} caption
-\end{itemize}
-
-\subsection{Task 1: PosLength}
-\label{poslength}
-\paragraph{Description.} Every segment must have a positive length.
-\paragraph{Query.} The query checks for segments with a length less than or equal to zero.
-\ttcpattern{pattern-poslength}
-\paragraph{Match.} $$\langle \mathsf{segment} \rangle$$ 
-\paragraph{Repair transformation.} The \textsf{length} attribute of the \textsf{segment} in the match is updated to $- \mathsf{length} + 1$.
-\ttcpattern{transformation-poslength}
-\paragraph{Goal.} This query defines an attribute check. This is a common use case in validation scenarios.
-
-
-\subsection{Task 2: SwitchSensor}
-\label{switchsensor}
-\paragraph{Description.} Every switch must have at least one sensor connected to it. 
-\paragraph{Query.} The query checks for switches that have no sensors associated with them.
-\ttcpattern{pattern-switchsensor}
-\paragraph{Match.} $$\langle \mathsf{sw} \rangle$$
-\paragraph{Repair transformation.} For a given match, a \textsf{sensor} is created and connected to the \textsf{switch}.
-\ttcpattern{transformation-switchsensor}
-\paragraph{Goal.} This query checks whether an object is connected to a relation. This pattern is common in more complex queries, e.g.\ it is used in the \textsf{RouteSensor} and the \textsf{SemaphoreNeighbor} queries.
-
-\subsection{Task 3: SwitchSet}
-\label{switchset}
-\paragraph{Description.} The entry semaphore of a route may only show GO if all switches along the route are in the position prescribed by the route.
-\paragraph{Query.} The query checks for routes which have a semaphore that show the GO signal. Additionally, the route follows a switch position (\textsf{swP}) that is connected to a switch (\textsf{sw}), but the switch position (\textsf{swP.position}) defines a different position from the current position of the switch (\textsf{sw.currentPosition}). 
-\ttcpattern{pattern-switchset}
-\paragraph{Match.} $$\langle \mathsf{semaphore}, \mathsf{route}, \mathsf{swP}, \mathsf{sw} \rangle$$
-\paragraph{Repair transformation.} For a given match, the \textsf{currentPosition} attribute of the \textsf{switch} is set to the \textsf{position} of the \textsf{switchPosition}. 
-\ttcpattern{transformation-switchset}
-\paragraph{Goal.} This pattern tests the efficiency of the join and filtering operations.
-
-
-\subsection{Extension Task 1: RouteSensor}
-\label{routesensor}
-\paragraph{Description.} All sensors that are associated with a switch that belongs to a route must also be associated directly with the same route.
-\paragraph{Query.} The query looks for sensors that are connected to a switch, but the sensor and the switch are not connected to the same route.
-\ttcpattern{pattern-routesensor}
-\paragraph{Match.} $$\langle \mathsf{route}, \mathsf{sensor}, \mathsf{swP}, \mathsf{sw} \rangle$$
-\paragraph{Repair transformation.} For a given match, the missing \textsf{definedBy} edge is inserted by connecting the \textsf{route} in the match to the \textsf{sensor}.
-\ttcpattern{transformation-routesensor}
-\paragraph{Goal.} This pattern checks for the absence of circles, so the efficiency of the join and the antijoin operations is tested.
-
-
-\subsection{Extension Task 2: SemaphoreNeighbor}
-\label{semaphoreneighbor}
-\paragraph{Description.} Routes that are connected through sensors and track elements must belong to the same semaphore.
-\paragraph{Query.} The query checks for routes (\textsf{route1}) which have an exit semaphore (\textsf{semaphore}) and a sensor (\textsf{sensor1}) connected to a track element (\textsf{te1}). This track element is connected to another track element (\textsf{te2}) which is connected to another sensor (\textsf{sensor2}) which (partially) defines another, different route (\textsf{route2}), while the semaphore is not on the entry of this route (\textsf{route2}).
-\ttcpattern{pattern-semaphoreneighbor}
-\paragraph{Match.} $$\langle \mathsf{semaphore}, \mathsf{route1}, \mathsf{route2}, \mathsf{sensor1}, \mathsf{sensor2}, \mathsf{te1}, \mathsf{te2} \rangle$$
-\paragraph{Repair transformation.} For a match, the \textsf{route2} node is connected to the \textsf{semaphore} node with an \textsf{entry} edge.
-\paragraph{Goal.} This pattern checks for the absence of circles, so the efficiency of the join operation is tested. One-way navigable references are also present in the constraint, so the efficiency of their evaluation is also measured. Subsumption inference is required, as the two track elements can be switches or segments.
-\ttcpattern{transformation-semaphoreneighbor}
-
-\section{Implementation}
-
-To aid the development of case solutions, we provide a framework using predefined input and output formats, along with two reference implementations. The source code and documentation is available at \url{https://github.com/FTSRG/trainbenchmark-ttc}.
-
 \subsection{Building the Projects}
 
 The Train Benchmark case defines a framework and application programming interface that enables the integration of additional tools. The reference implementation contains a benchmark suite for queries implemented in Java and \eiq{}. Both the framework and the reference implementations are written in Java~7.
@@ -319,36 +303,36 @@ For building the projects, we used Apache Maven~\cite{Maven}, one of the most wi
 The scripts can parametrized by a simple JSON configuration file which defines:
 
 \begin{itemize}
-  \item the range of the instance models from \texttt{minSize} to \texttt{maxSize},
-  \item the list of queries specified (\autoref{queries}),
-  \item the list of tools,
-  \item the number of runs,
-  \item the number of repair--recheck iterations,
-  \item the change set strategies,
-  \item the JVM arguments (e.g.\ maximum heap memory).
+	\item the range of the instance models from \texttt{minSize} to \texttt{maxSize},
+	\item the list of queries specified (\autoref{queries}),
+	\item the list of tools,
+	\item the number of runs,
+	\item the number of repair--recheck iterations,
+	\item the change set strategies,
+	\item the JVM arguments (e.g.\ maximum heap memory).
 \end{itemize}
 
 The default configuration is stored in the \texttt{config/config.json} file. Please use this as a basis for your configuration.
 
 \begin{lstlisting}
 {
-  "MinSize": 1,
-  "MaxSize": 2,
-  "Queries": ["PosLength", "RouteSensor", "SwitchSensor", "SwitchSet", "SemaphoreNeighbor"],
-  "Tools": [<your tool>],
-  "ChangeSets": ["fixed", "proportional"],
-  "Runs": 1,
-  "IterationCount": 5,
-  "JVM": {"vmargs": "-Xmx4G"}
+"MinSize": 1,
+"MaxSize": 2,
+"Queries": ["PosLength", "RouteSensor", "SwitchSensor", "SwitchSet", "SemaphoreNeighbor"],
+"Tools": [<your tool>],
+"ChangeSets": ["fixed", "proportional"],
+"Runs": 1,
+"IterationCount": 5,
+"JVM": {"vmargs": "-Xmx4G"}
 }
 \end{lstlisting}
-
 
 \subsection{Interpreting the Output}
 
 Measurements are automatically recorded by our benchmark framework and stored in TSV (Tab-Separated Values) format. This can be used to automatically create diagrams with the provided R~\cite{RProject} script and provide comparable plots. For publishing performance results, please stick to the format generated by the framework.
 
 \autoref{tab:exampleoutput} shows an example output. The \textsf{ChangeSet} defines the change set size (\emph{fixed} or \emph{proportional}, see~\figref{benchmark-phases}). The Train Benchmark is executed 5 times, the index of the current run is stored in the \textsf{RunIndex} attribute. The \textsf{Query} is executed by the \textsf{Tool} on the model with the given \textsf{Size}. The validation errors are repaired in multiple iterations, the index of the current iteration is shown in the \textsf{Iteration} attribute. Multiple values (\textsf{MetricValue}) of different metrics (\textsf{MetricName}) are measured during the benchmark. The execution time (\textit{time}) and memory consumption (\textit{memory}) for the \textit{read}, \textit{check}, \textit{repair} and \textit{recheck} phases are collected. The name the current phase is defined by the \textsf{PhaseName}. Additionally, the result set size (\textit{rss}) is stored for the \textit{check} phase and the iterations in the \textit{recheck} phase.
+
 
 \section{Evaluation Criteria}
 
@@ -362,10 +346,10 @@ The expected results are available at \url{https://github.com/FTSRG/trainbenchma
 
 Each task and extension task is scored independently $0-3$ points by the following rules:
 \begin{itemize}
-  \item $\mathbf{0}$   \textbf{points:} The task is not solved.
-  \item $\mathbf{1-2}$ \textbf{points:} The task is partially solved, the solution provides the subset or the superset of the expected results.
-  \item $\mathbf{3}$   \textbf{points:} The task is completely and correctly solved.
-  \item $\mathbf{-1}$  \textbf{point:} Only the query is implemented, but the transformation is not.
+	\item $\mathbf{0}$   \textbf{points:} The task is not solved.
+	\item $\mathbf{1-2}$ \textbf{points:} The task is partially solved, the solution provides the subset or the superset of the expected results.
+	\item $\mathbf{3}$   \textbf{points:} The task is completely and correctly solved.
+	\item $\mathbf{-1}$  \textbf{point:} Only the query is implemented, but the transformation is not.
 \end{itemize}
 
 \noindent\framebox[\textwidth][c]{\textbf{Correctness and completeness:} (3 Tasks + 2 Extension Tasks) $\times$ 3 points = 15 points}
@@ -375,11 +359,11 @@ Each task and extension task is scored independently $0-3$ points by the followi
 The validation rules are frequently changed and extended, therefore it is important to be able to define queries and transformations in a concise manner. These properties are scored based on the following rules:
 
 \begin{itemize}
-  \item $\mathbf{0}$   \textbf{points:} The task is not solved.
-  \item $\mathbf{1}$   \textbf{point:} The task is solved, but the solution is not significantly more concise than it would be in a general-purpose imperative language (e.g.\ Java), or the task is partially solved and the result set needs additional processing.
-  \item $\mathbf{2}$   \textbf{points:} The task is solved, the query and the transformation is defined in a declarative, visual or other query language, but the specification is hard to formulate.
-  \item $\mathbf{3}$   \textbf{points:} The solution is compact, the query and the transformation are defined in a concise manner.
-  \item $\mathbf{-1}$  \textbf{point:} Either the query or the transformation is implemented.
+	\item $\mathbf{0}$   \textbf{points:} The task is not solved.
+	\item $\mathbf{1}$   \textbf{point:} The task is solved, but the solution is not significantly more concise than it would be in a general-purpose imperative language (e.g.\ Java), or the task is partially solved and the result set needs additional processing.
+	\item $\mathbf{2}$   \textbf{points:} The task is solved, the query and the transformation is defined in a declarative, visual or other query language, but the specification is hard to formulate.
+	\item $\mathbf{3}$   \textbf{points:} The solution is compact, the query and the transformation are defined in a concise manner.
+	\item $\mathbf{-1}$  \textbf{point:} Either the query or the transformation is implemented.
 \end{itemize}
 
 \noindent\framebox[\textwidth][c]{\textbf{Conciseness:} (3 Tasks + 2 Extension Tasks) $\times$ 3 points = 15 points}
@@ -388,11 +372,11 @@ The validation rules are frequently changed and extended, therefore it is import
 
 The readability and descriptive power of each query and transformation is scored with respect to a model validation use case. The score represents how well model queries are used as model constraints, and how well repair operations can be expressed by model transformations. The score is given based on the following rules:
 \begin{itemize}
-  \item $\mathbf{0}$   \textbf{points:} The task is not solved.
-  \item $\mathbf{1}$   \textbf{point:} The task is solved, but the solution is not significantly more readable than it would be in a general-purpose imperative language (e.g.\ Java), or the task is just partially solved. For example, a typical EMF validator should get 1 point.
-  \item $\mathbf{2}$   \textbf{points:} The task is solved, the query and the transformation follows the description of the constraint and repair rule, but it is difficult to comprehend the meaning of the solution. For example, a foreign key constraint checked by a query formulated in SQL should get 2 points.
-  \item $\mathbf{3}$   \textbf{points:} The solution could be presented in the documentation of the modeling domain, and it is easier to comprehend than a textual description in natural language. For example, a solution similar to the graphical notation used in this paper should get 3 points.
-  \item $\mathbf{-1}$  \textbf{point:} If the language is only able to express either the constraint (e.g.\ OCL) or the repair operation.
+	\item $\mathbf{0}$   \textbf{points:} The task is not solved.
+	\item $\mathbf{1}$   \textbf{point:} The task is solved, but the solution is not significantly more readable than it would be in a general-purpose imperative language (e.g.\ Java), or the task is just partially solved. For example, a typical EMF validator should get 1 point.
+	\item $\mathbf{2}$   \textbf{points:} The task is solved, the query and the transformation follows the description of the constraint and repair rule, but it is difficult to comprehend the meaning of the solution. For example, a foreign key constraint checked by a query formulated in SQL should get 2 points.
+	\item $\mathbf{3}$   \textbf{points:} The solution could be presented in the documentation of the modeling domain, and it is easier to comprehend than a textual description in natural language. For example, a solution similar to the graphical notation used in this paper should get 3 points.
+	\item $\mathbf{-1}$  \textbf{point:} If the language is only able to express either the constraint (e.g.\ OCL) or the repair operation.
 \end{itemize}
 
 \noindent\framebox[\textwidth][c]{\textbf{Readability:} (3 Tasks + 2 Extension Tasks) $\times$ 3 points = 15 points}
@@ -400,66 +384,66 @@ The readability and descriptive power of each query and transformation is scored
 \subsection{Performance on Large Models}
 The goal of the performance measurements is to check the applicability of the submitted solutions on large industrial models. During the performance tests the execution times will be measured for different scenarios and increasing model sizes.
 
-As for last year's Movie Database case~\cite{horn2014ttc}, please restrict your benchmarks to those input models that can be processed within 5 minutes or less. Runs that take longer than 5 minutes will not be considered in the evaluation. Please provide a solution that can run on an x64-based Linux system with 4+~GB of memory, and that can be started on the command-line. This will be important to reproduce your results on a remote testing system. Please document the setup of your solution and the requirements to the system environment.
+Please restrict your benchmarks to those input models that can be processed within 5 minutes or less. Runs that take longer than 5 minutes will not be considered in the evaluation. Please provide a solution that can run on an x64-based Linux system with 4+~GB of memory, and that can be started on the command-line. This will be important to reproduce your results on a remote testing system. Please document the setup of your solution and the requirements to the system environment.
 
 We defined two validation scenarios, based on the phases defined in~\autoref{sec:phases}:
 
 \begin{description}
-\item[batch] The model is loaded (\textsf{read}) and validated (\textsf{check}).
-\item[repeated] The model is loaded (\textsf{read}) and validated (\textsf{check}), then the model is edited (\textsf{repair}) and revalidated (\textsf{recheck}) 10 times.
+	\item[batch] The model is loaded (\textsf{read}) and validated (\textsf{check}).
+	\item[repeated] The model is loaded (\textsf{read}) and validated (\textsf{check}), then the model is edited (\textsf{repair}) and revalidated (\textsf{recheck}) 10 times.
 \end{description}
 
 The performance of the solutions are compared in 20 \emph{tournaments}:
 
 \begin{itemize}
-  \item The tournaments are calculated for the 3 \emph{tasks} and 2 \emph{extension tasks}. If a solution skips a task, it is not considered in the tournament.
-  \item Each solution is measured for both \emph{batch} and \emph{repeated} validation.
-  \item Each solution is measured for both \emph{fixed} and \emph{proportional} change sets.
+	\item The tournaments are calculated for the 3 \emph{tasks} and 2 \emph{extension tasks}. If a solution skips a task, it is not considered in the tournament.
+	\item Each solution is measured for both \emph{batch} and \emph{repeated} validation.
+	\item Each solution is measured for both \emph{fixed} and \emph{proportional} change sets.
 \end{itemize}
 
 A solution gets from 0 to 1 points for a tournament which is launched for increasing model sizes. The score is based on the maximum size that the solution is able to handle, and its execution time relative to the fastest solution. Each measurement is executed 5 times and the median value is taken.
 
 \begin{itemize}
-  \item The model size is increased as long as there is a solution that is able to solve it in the given time limit. This results in \emph{rounds} $k = 1, 2, 3, \ldots, n$ for sizes $2^{k-1}$ ($1, 2, 4, \ldots, 2^{n-1}$).  
-  \item For each tournament, a solution earns a score between 0 and 1, determined by
-\[\frac{\sum^{\mathit{n}}_{k=1} \mathit{score}(k)}{\sum^{\mathit{n}}_{k=1} k}, \]
-
-where
- 
-\[
-\mathit{score}(k) =
-\begin{cases}
-    \mathit{score}_\mathit{size}(k) \times \mathit{score}_\mathit{time}(k), & \text{if the solution runs correctly and within the given time limit,}\\
-    0,                                                                      & \text{if the solution fails to run correctly or exceeds the given time limit,}
-\end{cases}
-\]
-
-and $\sum^{\mathit{n}}_{k=1} k = \mathit{n}\cdot(\mathit{n}+1)/2$ is used for normalizing the result.
-
-  \item For each round $\mathit{k}$ from 1 to $n$, if a solution is able to complete the validation, it is rewarded $k$ points:
-  	\begin{itemize}
-  	  \item round 1 (size 1): the winner earns 1 point,
-  	  \item round 2 (size 2): the winner earns 2 points,
-  	  \item round 3 (size 4): the winner earns 3 points,
-  	  \item \ldots
-  	  \item round $n$ (size $2^{n-1}$): the winner earns $n$ points.
-  	\end{itemize}
-  	
-  	The formula is specified as:
-  	
-    \[ \mathit{score}_\mathit{size}(k)= k \]
-  	
-  \item The fastest solution in each round earns 1 point, the other solutions earn partial points, based on the proportion of the current solution's execution time to the fastest execution time. The logarithm of this ratio for base 2 defines the score. For example:
-  	\begin{itemize}
-  	  \item if a solution takes $2 \times$ as long, it earns \sfrac{1}{2} points, 
-  	  \item if a solution takes $4 \times$ as long, it earns \sfrac{1}{3} points,
-  	  \item if a solution takes $8 \times$ as long, it earns \sfrac{1}{4} points,
-  	  \item and so on.
-  	\end{itemize}
-  	
-  	The formula is specified as:
-  
-    \[ \mathit{score}_\mathit{time}(k)=\frac{1}{1+\log_2\left(\frac{\text{the solution's execution time in round $k$}}{\text{the fastest execution time in the round $k$}}\right)} \]
+	\item The model size is increased as long as there is a solution that is able to solve it in the given time limit. This results in \emph{rounds} $k = 1, 2, 3, \ldots, n$ for sizes $2^{k-1}$ ($1, 2, 4, \ldots, 2^{n-1}$).  
+	\item For each tournament, a solution earns a score between 0 and 1, determined by
+	\[\frac{\sum^{\mathit{n}}_{k=1} \mathit{score}(k)}{\sum^{\mathit{n}}_{k=1} k}, \]
+	
+	where
+	
+	\[
+	\mathit{score}(k) =
+	\begin{cases}
+	\mathit{score}_\mathit{size}(k) \times \mathit{score}_\mathit{time}(k), & \text{if the solution runs correctly and within the given time limit,}\\
+	0,                                                                      & \text{if the solution fails to run correctly or exceeds the given time limit,}
+	\end{cases}
+	\]
+	
+	and $\sum^{\mathit{n}}_{k=1} k = \mathit{n}\cdot(\mathit{n}+1)/2$ is used for normalizing the result.
+	
+	\item For each round $\mathit{k}$ from 1 to $n$, if a solution is able to complete the validation, it is rewarded $k$ points:
+	\begin{itemize}
+		\item round 1 (size 1): the winner earns 1 point,
+		\item round 2 (size 2): the winner earns 2 points,
+		\item round 3 (size 4): the winner earns 3 points,
+		\item \ldots
+		\item round $n$ (size $2^{n-1}$): the winner earns $n$ points.
+	\end{itemize}
+	
+	The formula is specified as:
+	
+	\[ \mathit{score}_\mathit{size}(k)= k \]
+	
+	\item The fastest solution in each round earns 1 point, the other solutions earn partial points, based on the proportion of the current solution's execution time to the fastest execution time. The logarithm of this ratio for base 2 defines the score. For example:
+	\begin{itemize}
+		\item if a solution takes $2 \times$ as long, it earns \sfrac{1}{2} points, 
+		\item if a solution takes $4 \times$ as long, it earns \sfrac{1}{3} points,
+		\item if a solution takes $8 \times$ as long, it earns \sfrac{1}{4} points,
+		\item and so on.
+	\end{itemize}
+	
+	The formula is specified as:
+	
+	\[ \mathit{score}_\mathit{time}(k)=\frac{1}{1+\log_2\left(\frac{\text{the solution's execution time in round $k$}}{\text{the fastest execution time in the round $k$}}\right)} \]
 \end{itemize}
 
 In conclusion, a solution earns up to 20 points for \textbf{performance}:
@@ -469,16 +453,6 @@ In conclusion, a solution earns up to 20 points for \textbf{performance}:
 \subsection{Overall Evaluation}
 
 The scores of each aspect of the submitted solution are summarized to derive the final score (max.\ 65 points) used for ranking the submitted solutions.
-
-\paragraph{Acknowledgements.} The authors would like to thank Benedek Izsó for originally designing and implementing the \tb, Tassilo Horn for providing valuable comments regarding both the specification of the case and the implementation of the benchmark framework, and Zsolt Kővári for his contributions in the benchmark and visualization scripts.
-
-\bibliographystyle{eptcs}
-\bibliography{ttc}
-
-\clearpage
-
-\appendix
-\section{Appendix}
 
 \ttcfig{railway-yed}{Well-formed railway instance model}
 
