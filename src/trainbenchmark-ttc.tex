@@ -17,6 +17,7 @@
 \usepackage{xfrac}
 \usepackage{placeins}
 \usepackage{paralist}
+\usepackage{wrapfig}
 
 \sloppy
 % custom commands
@@ -25,6 +26,7 @@
 \definecolor{delcolor}{RGB}{59,66,161}
 \newcommand{\tb}{Train Benchmark\xspace}
 \newcommand{\union}{\cup}
+\newcommand{\tuple}[1]{\langle #1 \rangle}
 \newcommand{\intersection}{\cap}
 \newcommand{\parentheses}[1]{\left(#1\right)}
 \newcommand{\op}[2]{\mathrm{#1}\parentheses{#2}}
@@ -41,7 +43,7 @@
 \setlength{\parskip}{0em}
 
 \newcommand{\ttcfig}[2]{
-\begin{figure}[htb] 
+\begin{figure}[t] 
 	\centering
 	\includegraphics[width=0.8\textwidth]{figures/#1}
 	\caption{#2.}
@@ -54,10 +56,24 @@
 %	\includegraphics[scale=0.3]{figures/#1}
 %\end{figure}}
 
-\newcommand{\ttctransformation}[1]{
-	\includegraphics[scale=0.24]{figures/pattern-#1}
-	\includegraphics[scale=0.24]{figures/transformation-#1}
-	\\
+%\newcommand{\ttctransformation}[1]{
+%	\includegraphics[scale=0.24]{figures/pattern-#1}
+%	\includegraphics[scale=0.24]{figures/transformation-#1}
+%	\\
+%}
+
+\newcommand{\ttctransformation}[2]{
+	\begin{wrapfigure}{r}{6cm}
+		\centering
+		\vspace{-1em}
+		\includegraphics[scale=0.22]{figures/transformation-#1}
+		\vspace{-1em}
+		\footnotesize
+		\begin{align*}
+		\sf #2
+		\end{align*}
+		\vspace{-3em}
+	\end{wrapfigure}
 }
 
 \newcommand{\ttcfigscale}[3]{
@@ -154,7 +170,7 @@ The repair operation intends to fix invalid models elements based on the invalid
 
 \begin{compactdesc}
 \item[fixed] 10 of invalid model elements is modified. This tests the efficiency of handling small change sets.
-\item[proportional] 10\% of the result set is modified. This tests the efficiency of handling large change sets.
+\item[proportional] 10\% of the dresult set is modified. This tests the efficiency of handling large change sets.
 \end{compactdesc}
 
 \subsection{Queries}
@@ -171,9 +187,7 @@ In the \emph{repair} phase, some model elements are \emph{deterministically sele
 \section{Tasks}
 \label{tasks}
 
-For each task, we present the well-formedness constraints. The \emph{queries} are looking for violations of these constraints. We describe the meaning and the goal of each query and show a graphical notation of the associated graph pattern. We also define the matches as tuples to ensure that the ordering of the matches is consistent between the implementations (\autoref{ordering}). The \emph{repair transformations} are represented as graph transformations.
-
-For defining the patterns and transformations, we used a graphical syntax similar to GROOVE~\cite{rensink2004groove} with a couple of additions:
+For each task, we present the well-formedness constraints. The \emph{queries} are looking for violations of these constraints. We describe the meaning and the goal of each query and show a graphical notation of the associated graph pattern. We also define the matches as tuples to ensure that the ordering of the matches is consistent between the implementations (\autoref{ordering}). The \emph{repair transformations} are represented as graph transformations. For defining the patterns and transformations, we used a graphical syntax similar to GROOVE~\cite{rensink2004groove} with a couple of additions:
 
 \begin{compactitem}
   \item Filter conditions are shown in \textit{italic} font.
@@ -183,49 +197,50 @@ For defining the patterns and transformations, we used a graphical syntax simila
 
 \subsection{Task 1: PosLength}
 \label{poslength}
+
+\ttctransformation{poslength}{\tuple{segment}}
 \textbf{Description.} Every segment must have a positive length. \\
 \textbf{Query.} The query checks for segments with a length less than or equal to zero. \\
-\ttctransformation{poslength}
-\textbf{Match.} $\langle \mathsf{segment} \rangle$ \\
 \textbf{Repair transformation.} The \textsf{length} attribute of the \textsf{segment} in the match is updated to $- \mathsf{length} + 1$. \\
 \textbf{Goal.} This query defines an attribute check. This is a common use case in validation scenarios.
 
 
 \subsection{Task 2: SwitchSensor}
 \label{switchsensor}
+
+\ttctransformation{switchsensor}{\tuple{sw}}
 \textbf{Description.} Every switch must have at least one sensor connected to it. \\
 \textbf{Query.} The query checks for switches that have no sensors associated with them. \\
-\ttctransformation{switchsensor}
-\textbf{Match.} $\langle \mathsf{sw} \rangle$ \\
 \textbf{Repair transformation.} A \textsf{sensor} is created and connected to the \textsf{switch}. \\
 \textbf{Goal.} This query checks whether an object is connected to a relation. This pattern is common in more complex queries, e.g.\ it is used in the \textsf{RouteSensor} and the \textsf{SemaphoreNeighbor} queries.
 
 
 \subsection{Task 3: SwitchSet}
 \label{switchset}
+
+\ttctransformation{switchset}{\tuple{semaphore, route, swP, sw}}
 \textbf{Description.} The entry semaphore of a route may only show GO if all switches along the route are in the position prescribed by the route. \\
 \textbf{Query.} The query checks for routes which have a semaphore that show the GO signal. Additionally, the route follows a switch position (\textsf{swP}) that is connected to a switch (\textsf{sw}), but the switch position (\textsf{swP.position}) defines a different position from the current position of the switch (\textsf{sw.currentPosition}). \\
-\ttctransformation{switchset}
-\textbf{Match.} $\langle \mathsf{semaphore}, \mathsf{route}, \mathsf{swP}, \mathsf{sw} \rangle$ \\
 \textbf{Repair transformation.} The \textsf{currentPosition} attribute of the \textsf{switch} is set to the \textsf{position} of \textsf{swP}. \\
 \textbf{Goal.} This pattern tests the efficiency of the join and filtering operations.
 
 \subsection{Extension Task 1: RouteSensor}
 \label{routesensor}
+
+\ttctransformation{routesensor}{\tuple{route, sensor, swP, sw}}
 \textbf{Description.} All sensors that are associated with a switch that belongs to a route must also be associated directly with the same route. \\
 \textbf{Query.} The query looks for sensors that are connected to a switch, but the sensor and the switch are not connected to the same route. \\
-\ttctransformation{routesensor}
-\textbf{Match.} $\langle \mathsf{route}, \mathsf{sensor}, \mathsf{swP}, \mathsf{sw} \rangle$ \\
+%\textbf{Match.} $} \rangle$ \\
 \textbf{Repair transformation.} The missing \textsf{definedBy} edge is inserted by connecting the \textsf{route} in the match to the \textsf{sensor}. \\
 \textbf{Goal.} This pattern checks for the absence of circles, so the efficiency of the join and the antijoin operations is tested.
 
-
 \subsection{Extension Task 2: SemaphoreNeighbor}
 \label{semaphoreneighbor}
+
+\ttctransformation{semaphoreneighbor}{\langle & \sf semaphore, route1, route2, \\ & \sf sensor1, sensor2, te1, te2 \rangle}
 \textbf{Description.} Routes that are connected through sensors and track elements must belong to the same semaphore. \\
 \textbf{Query.} The query checks for routes (\textsf{route1}) which have an exit semaphore (\textsf{semaphore}) and a sensor (\textsf{sensor1}) connected to a track element (\textsf{te1}). This track element is connected to another track element (\textsf{te2}) which is connected to another sensor (\textsf{sensor2}) which (partially) defines another, different route (\textsf{route2}), while the semaphore is not on the entry of this route (\textsf{route2}). \\
-\ttctransformation{semaphoreneighbor}
-\textbf{Match.} $\langle \mathsf{semaphore}, \mathsf{route1}, \mathsf{route2}, \mathsf{sensor1}, \mathsf{sensor2}, \mathsf{te1}, \mathsf{te2} \rangle$ \\
+%\ttctransformation{semaphoreneighbor}
 \textbf{Repair transformation.} The \textsf{route2} node is connected to the \textsf{semaphore} node with an \textsf{entry} edge. \\
 \textbf{Goal.} This pattern checks for the absence of circles, so the efficiency of the join operation is tested. One-way navigable references are also present in the constraint, so the efficiency of their evaluation is also measured. Subsumption inference is required, as the two track elements can be switches or segments.
 
@@ -268,7 +283,7 @@ For defining the patterns and transformations, we used a graphical syntax simila
 
 To aid the development of case solutions, we provide a framework using predefined input and output formats, along with two reference implementations. The source code and documentation is available at \url{https://github.com/FTSRG/trainbenchmark-ttc}.
 
-\subsubsection{Ordering of the Match Set}
+\subsection{Ordering of the Match Set}
 \label{ordering}
 
 The matches in the match set may be returned in any collection (e.g.\ a list or a set) in any order, given that the collection is unique. In order to ensure that the benchmark is \emph{repeatable}, this collection is copied to a sorted list. The sorting is carried out using by defining the ordering between matches.
@@ -296,7 +311,7 @@ The ordered list is also used to ensure that the transformations (\autoref{trans
 
 The Train Benchmark case defines a framework and application programming interface that enables the integration of additional tools. The reference implementation contains a benchmark suite for queries implemented in Java and \eiq{}. Both the framework and the reference implementations are written in Java~7.
 
-For building the projects, we used Apache Maven~\cite{Maven}, one of the most widely used Java build systems. The build is configured so that the binaries are able to run without an Eclipse application. A significant proportion of modeling tools are integrated to the Eclipse plug-in environment. In order to support such systems, our projects also have a plug-in nature. This way, they can be integrated with Eclipse (and OSGi) plug-ins as well and can be built without Maven.
+For building the projects, we used Apache Maven\footnote{\url{https://maven.apache.org/}}, one of the most widely used Java build systems. The build is configured so that the binaries are able to run without an Eclipse application. A significant proportion of modeling tools are integrated to the Eclipse plug-in environment. In order to support such systems, our projects also have a plug-in nature. This way, they can be integrated with Eclipse (and OSGi) plug-ins as well and can be built without Maven.
 
 \subsection{Running the Projects}
 
@@ -329,7 +344,7 @@ The default configuration is stored in the \texttt{config/config.json} file. Ple
 
 \subsection{Interpreting the Output}
 
-Measurements are automatically recorded by our benchmark framework and stored in TSV (Tab-Separated Values) format. This can be used to automatically create diagrams with the provided R~\cite{RProject} script and provide comparable plots. For publishing performance results, please stick to the format generated by the framework.
+Measurements are automatically recorded by our benchmark framework and stored in TSV (Tab-Separated Values) format. This can be used to automatically create diagrams with the provided R\footnote{\url{https://www.r-project.org/}} script and provide comparable plots. For publishing performance results, please stick to the format generated by the framework.
 
 \autoref{tab:exampleoutput} shows an example output. The \textsf{ChangeSet} defines the change set size (\emph{fixed} or \emph{proportional}, see~\figref{benchmark-phases}). The Train Benchmark is executed 5 times, the index of the current run is stored in the \textsf{RunIndex} attribute. The \textsf{Query} is executed by the \textsf{Tool} on the model with the given \textsf{Size}. The validation errors are repaired in multiple iterations, the index of the current iteration is shown in the \textsf{Iteration} attribute. Multiple values (\textsf{MetricValue}) of different metrics (\textsf{MetricName}) are measured during the benchmark. The execution time (\textit{time}) and memory consumption (\textit{memory}) for the \textit{read}, \textit{check}, \textit{repair} and \textit{recheck} phases are collected. The name the current phase is defined by the \textsf{PhaseName}. Additionally, the result set size (\textit{rss}) is stored for the \textit{check} phase and the iterations in the \textit{recheck} phase.
 
