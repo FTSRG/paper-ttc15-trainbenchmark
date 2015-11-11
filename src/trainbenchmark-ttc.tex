@@ -203,7 +203,7 @@ For each task, we present the well-formedness constraints. The \emph{queries} ar
 
 \ttctransformation{switchset}{\tuple{semaphore, route, swP, sw}}
 \paragraph{SwitchSet.} The entry semaphore of a route may only show GO if all switches along the route are in the position prescribed by the route. \\
-\textit{Query.} The query checks for routes which have a semaphore that show the GO signal. Additionally, the route follows a switch position (\textsf{swP}) that is connected to a switch (\textsf{sw}), but the switch position (\textsf{swP.position}) defines a different position from the current position of the switch (\textsf{sw.currentPosition}). \\
+\textit{Query.} The query checks for routes which have a semaphore that shows the GO signal. Additionally, the route follows a switch position (\textsf{swP}) that is connected to a switch (\textsf{sw}), but the switch position (\textsf{swP.position}) defines a different position from the current position of the switch (\textsf{sw.currentPosition}). \\
 \textit{Repair transformation.} The \textsf{currentPosition} attribute of the \textsf{switch} is set to the \textsf{position} of \textsf{swP}. \\
 \textit{Goal.} This pattern tests the efficiency of the join and filtering operations.
 
